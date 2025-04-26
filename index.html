@@ -3,174 +3,36 @@
 <head>
 <link rel="manifest" href="manifest.json" />
 <meta name="theme-color" content="#007bff" />
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Coolio Web</title>
-  <link rel="icon" href="img/logo.png" type="image/png">
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f9f9f9;
-      color: #333;
-      overflow: hidden;
-    }
-
-    .container {
-      padding: 8px;
-    }
-
-    .tabs {
-      display: flex;
-      gap: 4px;
-      margin-bottom: 6px;
-      flex-wrap: wrap;
-    }
-
-    .tab,
-    .add-tab {
-      display: flex;
-      align-items: center;
-      padding: 4px 8px;
-      background: #fff;
-      border-radius: 6px;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-      cursor: pointer;
-      font-size: 13px;
-      transition: all 0.3s;
-      border: 1px solid #eeeeee;
-    }
-	
-	.tab {
-	padding: 4px 16px;
-	font-size: 15px;
-	}
-
-    .tab:hover,
-    .add-tab:hover {
-      background: #f0f0f0;
-    }
-
-    .tab.selected {
-      background: #cce0ff;
-      border: 1px solid #4d94ff;
-    }
-
-    .tab .close {
-      margin-left: 6px;
-      color: #999;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .tab .close:hover {
-      color: #333;
-    }
-
-    .url-bar-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      margin-bottom: 8px;
-    }
-
-    .nav-button,
-    .more-button {
-      background: #fff;
-      border: 1px solid #eee;
-      padding: 6px 9px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 15px;
-      transition: background 0.3s;
-    }
-	
-	.more-button {
-	padding: 6px 13px;
-	}
-
-    .nav-button:hover,
-    .more-button:hover {
-      background: #f0f0f0;
-    }
-
-    .url-bar {
-      flex-grow: 1;
-      padding: 6px 10px;
-      font-size: 13px;
-      border: 1px solid #eee;
-      border-radius: 4px;
-    }
-
-    .dropdown {
-      position: absolute;
-      background: #fff;
-      border: 1px solid #eee;
-      border-radius: 4px;
-      padding: 8px 6px;
-      right: 8px;
-      top: 74px;
-      display: none;
-      flex-direction: column;
-      gap: 4px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      z-index: 1000;
-    }
-
-    .dropdown.show {
-      display: flex;
-    }
-
-    .dropdown button {
-      padding: 4px 15px;
-      border: none;
-      background: transparent;
-      border-radius: 3px;
-      cursor: pointer;
-      text-align: left;
-      font-size: 14px;
-	  transition: all 0.1s;
-    }
-
-    .dropdown button:hover {
-      background: #eee;
-    }
-
-    .iframe-container {
-      margin-top: 10px;
-      width: 100%;
-      height: calc(100vh - 94px);
-    }
-
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      background: #fff;
-      border-radius: 4px;
-    }
-	
-	.icon {
-  width: 16px;
-  height: 16px;
-  margin-right: 6px;
-  vertical-align: middle;
-}
-
-.divider {
-  width: 85%;
-  height: 1px;
-  right: 8px;
-  background-color: #ccc;
-  margin: 0 10px;
-  display: inline-block;
-}
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Coolio Web</title>
+<link rel="icon" href="img/logo.png" type="image/png">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f9f9f9; color: #333; overflow: hidden; }
+  .container { padding: 8px; }
+  .tabs { display: flex; gap: 4px; margin-bottom: 6px; flex-wrap: wrap; }
+  .tab, .add-tab { display: flex; align-items: center; padding: 4px 8px; background: #fff; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); cursor: pointer; font-size: 13px; transition: all 0.3s; border: 1px solid #eeeeee; }
+  .tab { padding: 4px 16px; font-size: 15px; }
+  .tab:hover, .add-tab:hover { background: #f0f0f0; }
+  .tab.selected { background: #cce0ff; border: 1px solid #4d94ff; }
+  .tab .close { margin-left: 6px; color: #999; font-weight: bold; cursor: pointer; }
+  .tab .close:hover { color: #333; }
+  .url-bar-wrapper { display: flex; align-items: center; gap: 4px; margin-bottom: 8px; }
+  .nav-button, .more-button { background: #fff; border: 1px solid #eee; padding: 6px 9px; border-radius: 4px; cursor: pointer; font-size: 15px; transition: background 0.3s; }
+  .more-button { padding: 6px 13px; }
+  .nav-button:hover, .more-button:hover { background: #f0f0f0; }
+  .url-bar { flex-grow: 1; padding: 6px 10px; font-size: 13px; border: 1px solid #eee; border-radius: 4px; }
+  .dropdown { position: absolute; background: #fff; border: 1px solid #eee; border-radius: 4px; padding: 8px 6px; right: 8px; top: 74px; display: none; flex-direction: column; gap: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000; }
+  .dropdown.show { display: flex; }
+  .dropdown button { padding: 4px 15px; border: none; background: transparent; border-radius: 3px; cursor: pointer; text-align: left; font-size: 14px; transition: all 0.1s; }
+  .dropdown button:hover { background: #eee; }
+  .iframe-container { margin-top: 10px; width: 100%; height: calc(100vh - 94px); position: relative; }
+  .iframe-container iframe { width: 100%; height: 100%; border: none; background: #fff; border-radius: 4px; position: absolute; top: 0; left: 0; display: none; }
+  .iframe-container iframe.active { display: block; }
+  .icon { width: 16px; height: 16px; margin-right: 6px; vertical-align: middle; }
+  .divider { width: 85%; height: 1px; background-color: #ccc; margin: 0 10px; display: inline-block; }
+</style>
 </head>
 <body>
   <div class="container">
@@ -183,142 +45,131 @@
       <button class="more-button" id="moreButton">&#8942;</button>
     </div>
     <div class="dropdown" id="dropdownMenu">
-      <button><img src="icons/newtab.png" class="icon">New Tab</button>
-	  <div class="divider"></div>
-<button id="fullscreenBtn"><img src="icons/fullscreen.png" class="icon">Fullscreen</button>
-<button id="installAppBtn"><img src="icons/downloads.png" class="icon">Download App</button>
-<div class="divider"></div>
-<button><img src="icons/settings.png" class="icon">Settings</button>
+      <button id="newTabBtn"><img src="icons/newtab.png" class="icon">New Tab</button>
+      <div class="divider"></div>
+      <button id="fullscreenBtn"><img src="icons/fullscreen.png" class="icon">Fullscreen</button>
+      <button id="installAppBtn"><img src="icons/downloads.png" class="icon">Download App</button>
+      <div class="divider"></div>
+      <button><img src="icons/settings.png" class="icon">Settings</button>
     </div>
-    <div class="iframe-container">
-      <iframe src="" id="webview"></iframe>
-    </div>
+    <div class="iframe-container" id="iframeContainer"></div>
   </div>
 
   <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      deferredPrompt = e;
+    });
+
     const tabsContainer = document.getElementById('tabs');
     const urlInput = document.getElementById('url-input');
-    const iframe = document.getElementById('webview');
-    const dropdown = document.getElementById('dropdownMenu');
+    const iframeContainer = document.getElementById('iframeContainer');
+    const backBtn = document.getElementById('backBtn');
+    const forwardBtn = document.getElementById('forwardBtn');
+    const reloadBtn = document.getElementById('reloadBtn');
     const moreButton = document.getElementById('moreButton');
+    const newTabBtn = document.getElementById('newTabBtn');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const installAppBtn = document.getElementById('installAppBtn');
 
     let tabs = JSON.parse(localStorage.getItem('tabs')) || [];
     let activeIndex = parseInt(localStorage.getItem('activeTab')) || 0;
 
-    const renderTabs = () => {
+    function createIframe(tab, idx) {
+      const ifr = document.createElement('iframe');
+      ifr.src = tab.url;
+      ifr.dataset.index = idx;
+      ifr.classList.toggle('active', idx === activeIndex);
+      iframeContainer.appendChild(ifr);
+      return ifr;
+    }
+
+    function renderTabs() {
       tabsContainer.innerHTML = '';
-      tabs.forEach((tab, index) => {
+      iframeContainer.innerHTML = '';
+      tabs.forEach((tab, i) => {
         const el = document.createElement('div');
-        el.className = 'tab' + (index === activeIndex ? ' selected' : '');
+        el.className = 'tab' + (i === activeIndex ? ' selected' : '');
         el.innerHTML = `${tab.name} <span class="close">&times;</span>`;
-        el.addEventListener('click', () => {
-          activeIndex = index;
-          switchToTab(index);
-        });
-        el.querySelector('.close').addEventListener('click', e => {
+        el.onclick = () => switchToTab(i);
+        el.querySelector('.close').onclick = e => {
           e.stopPropagation();
-          tabs.splice(index, 1);
+          tabs.splice(i, 1);
           if (activeIndex >= tabs.length) activeIndex = tabs.length - 1;
           saveAndRender();
-        });
+        };
         tabsContainer.appendChild(el);
+        createIframe(tab, i);
       });
-
-let deferredPrompt;
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-});
-
       const addTab = document.createElement('div');
       addTab.className = 'add-tab';
       addTab.textContent = '+';
-      addTab.addEventListener('click', () => {
+      addTab.onclick = () => {
         tabs.push({ name: 'New Tab', url: 'newtab.html' });
         activeIndex = tabs.length - 1;
         saveAndRender();
-      });
+      };
       tabsContainer.appendChild(addTab);
-    };
+    }
 
-    const switchToTab = index => {
-      activeIndex = index;
+    function switchToTab(idx) {
+      activeIndex = idx;
       localStorage.setItem('activeTab', activeIndex);
-      iframe.src = tabs[index].url;
-      urlInput.value = tabs[index].url;
+      Array.from(iframeContainer.children).forEach(ifr => {
+        ifr.classList.toggle('active', parseInt(ifr.dataset.index) === idx);
+      });
+      urlInput.value = tabs[idx].url;
       renderTabs();
-    };
+    }
 
-    const saveAndRender = () => {
+    function saveAndRender() {
       localStorage.setItem('tabs', JSON.stringify(tabs));
-      localStorage.setItem('activeTab', activeIndex);
       renderTabs();
-      if (tabs[activeIndex]) {
-        iframe.src = tabs[activeIndex].url;
-        urlInput.value = tabs[activeIndex].url;
-      }
-    };
+      switchToTab(activeIndex);
+    }
 
     urlInput.addEventListener('keydown', e => {
       if (e.key === 'Enter') {
-        let url = urlInput.value;
+        let url = urlInput.value.trim();
         if (!url.startsWith('http')) url = 'https://' + url;
-        iframe.src = url;
         tabs[activeIndex].url = url;
         tabs[activeIndex].name = urlInput.value;
-        localStorage.setItem('tabs', JSON.stringify(tabs));
-        renderTabs();
+        saveAndRender();
       }
     });
 
-    iframe.addEventListener('load', () => {
-      tabs[activeIndex].url = iframe.src;
-      localStorage.setItem('tabs', JSON.stringify(tabs));
-      urlInput.value = iframe.src;
-    });
+    backBtn.onclick = () => {
+      const ifr = iframeContainer.querySelector('iframe.active').contentWindow;
+      ifr.history.back();
+    };
+    forwardBtn.onclick = () => {
+      const ifr = iframeContainer.querySelector('iframe.active').contentWindow;
+      ifr.history.forward();
+    };
+    reloadBtn.onclick = () => {
+      const ifr = iframeContainer.querySelector('iframe.active').contentWindow;
+      ifr.location.reload();
+    };
+    moreButton.onclick = () => {
+      document.getElementById('dropdownMenu').classList.toggle('show');
+    };
+    fullscreenBtn.onclick = () => {
+      const ifr = iframeContainer.querySelector('iframe.active');
+      ifr.requestFullscreen?.() || ifr.webkitRequestFullscreen?.();
+    };
+    installAppBtn.onclick = async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt = null;
+      }
+    };
 
-    document.getElementById('reloadBtn').addEventListener('click', () => {
-      iframe.contentWindow.location.reload();
-    });
-
-    document.getElementById('backBtn').addEventListener('click', () => {
-      iframe.contentWindow.history.back();
-    });
-
-    document.getElementById('forwardBtn').addEventListener('click', () => {
-      iframe.contentWindow.history.forward();
-    });
-
-    moreButton.addEventListener('click', () => {
-      dropdown.classList.toggle('show');
-    });
-
-    if (tabs.length === 0) {
-      tabs = [{ name: 'New Tab', url: 'newtab.html' }];
-    }
-
+    if (!tabs.length) tabs = [{ name: 'New Tab', url: 'newtab.html' }];
     saveAndRender();
-	
-	document.getElementById('fullscreenBtn').addEventListener('click', () => {
-    const iframe = document.getElementById('webview');
-    if (iframe.requestFullscreen) {
-      iframe.requestFullscreen();
-    } else if (iframe.webkitRequestFullscreen) {
-      iframe.webkitRequestFullscreen();
-    } else if (iframe.mozRequestFullScreen) {
-      iframe.mozRequestFullScreen();
-    } else if (iframe.msRequestFullscreen) {
-      iframe.msRequestFullscreen();
-    }
-  });
-  
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js')
-    .then(reg => console.log('Service worker registered', reg))
-    .catch(err => console.error('Service worker registration failed', err));
-}
-  
   </script>
 </body>
 </html>

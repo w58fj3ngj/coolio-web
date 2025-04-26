@@ -1,10 +1,10 @@
 {
   "name": "Coolio Web",
   "short_name": "Coolio",
-  "start_url": "./main.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#007bff",
+  "theme_color": "#050505",
   "icons": [
     {
       "src": "img/logo.png",
