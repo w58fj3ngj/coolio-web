@@ -8,30 +8,30 @@
 <title>Coolio Web</title>
 <link rel="icon" href="img/logo.png" type="image/png">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', sans-serif; background: #f9f9f9; color: #333; overflow: hidden; }
-  .container { padding: 8px; }
-  .tabs { display: flex; gap: 4px; margin-bottom: 6px; flex-wrap: wrap; }
-  .tab, .add-tab { display: flex; align-items: center; padding: 4px 8px; background: #fff; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); cursor: pointer; font-size: 13px; transition: all 0.3s; border: 1px solid #eeeeee; }
-  .tab { padding: 4px 16px; font-size: 15px; }
-  .tab:hover, .add-tab:hover { background: #f0f0f0; }
-  .tab.selected { background: #cce0ff; border: 1px solid #4d94ff; }
-  .tab .close { margin-left: 6px; color: #999; font-weight: bold; cursor: pointer; }
-  .tab .close:hover { color: #333; }
-  .url-bar-wrapper { display: flex; align-items: center; gap: 4px; margin-bottom: 8px; }
-  .nav-button, .more-button { background: #fff; border: 1px solid #eee; padding: 6px 9px; border-radius: 4px; cursor: pointer; font-size: 15px; transition: background 0.3s; }
-  .more-button { padding: 6px 13px; }
-  .nav-button:hover, .more-button:hover { background: #f0f0f0; }
-  .url-bar { flex-grow: 1; padding: 6px 10px; font-size: 13px; border: 1px solid #eee; border-radius: 4px; }
-  .dropdown { position: absolute; background: #fff; border: 1px solid #eee; border-radius: 4px; padding: 8px 6px; right: 8px; top: 74px; display: none; flex-direction: column; gap: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000; }
-  .dropdown.show { display: flex; }
-  .dropdown button { padding: 4px 15px; border: none; background: transparent; border-radius: 3px; cursor: pointer; text-align: left; font-size: 14px; transition: all 0.1s; }
-  .dropdown button:hover { background: #eee; }
-  .iframe-container { margin-top: 10px; width: 100%; height: calc(100vh - 94px); position: relative; }
-  .iframe-container iframe { width: 100%; height: 100%; border: none; background: #fff; border-radius: 4px; position: absolute; top: 0; left: 0; display: none; }
-  .iframe-container iframe.active { display: block; }
-  .icon { width: 16px; height: 16px; margin-right: 6px; vertical-align: middle; }
-  .divider { width: 85%; height: 1px; background-color: #ccc; margin: 0 10px; display: inline-block; }
+  * { box-sizing: border-box; margin: 0; padding: 0 }
+  body { font-family: 'Segoe UI', sans-serif; background: #f9f9f9; color: #333; overflow: hidden }
+  .container { padding: 8px }
+  .tabs { display: flex; gap: 4px; margin-bottom: 6px; flex-wrap: wrap }
+  .tab, .add-tab { display: flex; align-items: center; padding: 4px 8px; background: #fff; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); cursor: pointer; font-size: 13px; transition: all .3s; border: 1px solid #eee }
+  .tab { padding: 4px 16px; font-size: 15px }
+  .tab:hover, .add-tab:hover { background: #f0f0f0 }
+  .tab.selected { background: #cce0ff; border: 1px solid #4d94ff }
+  .tab .close { margin-left: 6px; color: #999; font-weight: bold; cursor: pointer }
+  .tab .close:hover { color: #333 }
+  .url-bar-wrapper { display: flex; align-items: center; gap: 4px; margin-bottom: 8px }
+  .nav-button, .more-button { background: #fff; border: 1px solid #eee; padding: 6px 9px; border-radius: 4px; cursor: pointer; font-size: 15px; transition: background .3s }
+  .more-button { padding: 6px 13px }
+  .nav-button:hover, .more-button:hover { background: #f0f0f0 }
+  .url-bar { flex-grow: 1; padding: 6px 10px; font-size: 13px; border: 1px solid #eee; border-radius: 4px }
+  .dropdown { position: absolute; background: #fff; border: 1px solid #eee; border-radius: 4px; padding: 8px 6px; right: 8px; top: 74px; display: none; flex-direction: column; gap: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000 }
+  .dropdown.show { display: flex }
+  .dropdown button { padding: 4px 15px; border: none; background: transparent; border-radius: 3px; cursor: pointer; text-align: left; font-size: 14px; transition: all .1s }
+  .dropdown button:hover { background: #eee }
+  .iframe-container { margin-top: 10px; width: 100%; height: calc(100vh - 94px); position: relative }
+  .iframe-container iframe { width: 100%; height: 100%; border: none; background: #fff; border-radius: 4px; position: absolute; top: 0; left: 0; display: none }
+  .iframe-container iframe.active { display: block }
+  .icon { width: 16px; height: 16px; margin-right: 6px; vertical-align: middle }
+  .divider { width: 85%; height: 1px; background: #ccc; margin: 0 10px; display: inline-block }
 </style>
 </head>
 <body>
@@ -54,208 +54,100 @@
     </div>
     <div class="iframe-container" id="iframeContainer"></div>
   </div>
-
   <script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js');
+if('serviceWorker' in navigator)navigator.serviceWorker.register('service-worker.js')
+let deferredPrompt
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e})
+window.addEventListener('message',e=>{if(e.data&&e.data.type==='url-entry')localStorage.setItem('lastEntry',e.data.text)})
+const tabsContainer=document.getElementById('tabs'),
+      urlInput=document.getElementById('url-input'),
+      iframeContainer=document.getElementById('iframeContainer'),
+      backBtn=document.getElementById('backBtn'),
+      forwardBtn=document.getElementById('forwardBtn'),
+      reloadBtn=document.getElementById('reloadBtn'),
+      moreButton=document.getElementById('moreButton'),
+      newTabBtn=document.getElementById('newTabBtn'),
+      fullscreenBtn=document.getElementById('fullscreenBtn'),
+      installAppBtn=document.getElementById('installAppBtn')
+let tabs=JSON.parse(localStorage.getItem('tabs'))||[],
+    activeIndex=parseInt(localStorage.getItem('activeTab'))||0,
+    iframeElements=[]
+function formatURL(input){
+  if(input.startsWith('http://')||input.startsWith('https://'))return input
+  if(input.includes('.')||input.includes(':'))return'http://'+input
+  return'https://duckduckgo.com/?q='+encodeURIComponent(input)
 }
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-});
-
-const tabsContainer = document.getElementById('tabs');
-const urlInput = document.getElementById('url-input');
-const iframeContainer = document.getElementById('iframeContainer');
-const backBtn = document.getElementById('backBtn');
-const forwardBtn = document.getElementById('forwardBtn');
-const reloadBtn = document.getElementById('reloadBtn');
-const moreButton = document.getElementById('moreButton');
-const newTabBtn = document.getElementById('newTabBtn');
-const fullscreenBtn = document.getElementById('fullscreenBtn');
-const installAppBtn = document.getElementById('installAppBtn');
-
-let tabs = JSON.parse(localStorage.getItem('tabs')) || [];
-let activeIndex = parseInt(localStorage.getItem('activeTab')) || 0;
-let iframeElements = [];
-
-function formatURL(input) {
-  if (input.startsWith('http://') || input.startsWith('https://')) return input;
-  if (input.includes('.') || input.includes(':')) return 'https://' + input;
-  return 'https://duckduckgo.com/?q=' + encodeURIComponent(input);
+function createIframe(tab,idx){
+  const ifr=document.createElement('iframe')
+  ifr.src=tab.url
+  ifr.dataset.index=idx
+  ifr.classList.toggle('active',idx===activeIndex)
+  iframeContainer.appendChild(ifr)
+  iframeElements[idx]=ifr
 }
-
-function createIframe(tab, idx) {
-  const ifr = document.createElement('iframe');
-  ifr.src = tab.url;
-  ifr.dataset.index = idx;
-  ifr.classList.add('iframe');
-  ifr.classList.toggle('active', idx === activeIndex);
-  iframeContainer.appendChild(ifr);
-  iframeElements[idx] = ifr;
-
-  // Listen for messages from nested iframes to save their state
-  ifr.onload = () => {
-    // Check for nested iframes and add message listeners for them
-    const nestedIframes = ifr.contentWindow.document.querySelectorAll('iframe');
-    nestedIframes.forEach((nestedIframe, nestedIdx) => {
-      nestedIframe.contentWindow.postMessage({ action: 'saveState', idx: nestedIdx }, '*');
-    });
-
-    // Listen for state data from nested iframes
-    window.addEventListener('message', (e) => {
-      if (e.origin !== ifr.src) return;
-      if (e.data.action === 'saveState') {
-        saveIframeState(idx, ifr.contentWindow, e.data.state);
-      }
-    });
-  };
-
-  // Check if there's saved state for this iframe
-  const savedState = JSON.parse(localStorage.getItem(`iframeState-${idx}`));
-  if (savedState) {
-    // Restore scroll position
-    ifr.contentWindow.scrollTo(0, savedState.scrollPosition);
-    
-    // Restore form data (if available)
-    const forms = ifr.contentWindow.document.forms;
-    if (forms.length > 0) {
-      Array.from(forms).forEach(form => {
-        form.querySelectorAll('input, textarea, select').forEach(input => {
-          if (savedState.formData[input.name]) {
-            input.value = savedState.formData[input.name];
-          }
-        });
-      });
-    }
+function renderTabs(){
+  tabsContainer.innerHTML=''
+  iframeContainer.innerHTML=''
+  tabs.forEach((tab,i)=>{
+    const el=document.createElement('div')
+    el.className='tab'+(i===activeIndex?' selected':'')
+    const fav=document.createElement('img')
+    try{fav.src='https://www.google.com/s2/favicons?domain='+new URL(tab.url).hostname}catch{fav.src='img/logo.png'}
+    fav.className='icon'
+    const lbl=document.createElement('span')
+    lbl.textContent=tab.name
+    const cls=document.createElement('span')
+    cls.textContent='×'
+    cls.className='close'
+    cls.onclick=e=>{e.stopPropagation();iframeElements[i].remove();tabs.splice(i,1);iframeElements.splice(i,1);if(activeIndex>=tabs.length)activeIndex=tabs.length-1;saveAndRender()}
+    el.appendChild(fav)
+    el.appendChild(lbl)
+    el.appendChild(cls)
+    el.onclick=()=>switchToTab(i)
+    tabsContainer.appendChild(el)
+    createIframe(tab,i)
+  })
+  const addTab=document.createElement('div')
+  addTab.className='add-tab'
+  addTab.textContent='+'
+  addTab.onclick=()=>{const entry=localStorage.getItem('lastEntry')||'newtab.html';tabs.push({name:'New Tab',url:'static/iframe.html#'+encodeURIComponent(entry)});activeIndex=tabs.length-1;saveAndRender()}
+  tabsContainer.appendChild(addTab)
+}
+function switchToTab(idx){
+  activeIndex=idx
+  localStorage.setItem('activeTab',activeIndex)
+  iframeElements.forEach((ifr,i)=>ifr.classList.toggle('active',i===idx))
+  urlInput.value=tabs[idx].url
+  renderTabs()
+}
+function saveAndRender(){
+  localStorage.setItem('tabs',JSON.stringify(tabs))
+  renderTabs()
+  switchToTab(activeIndex)
+}
+urlInput.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    let url=urlInput.value.trim()
+    url=formatURL(url)
+    tabs[activeIndex].url=url
+    tabs[activeIndex].name=url
+    iframeElements[activeIndex].src=url
+    localStorage.setItem('lastEntry',urlInput.value.trim())
+    saveAndRender()
   }
-
-  // Listen for scroll events
-  ifr.contentWindow.addEventListener('scroll', () => {
-    saveIframeState(idx, ifr.contentWindow);
-  });
-
-  // Listen for form changes
-  const forms = ifr.contentWindow.document.forms;
-  Array.from(forms).forEach(form => {
-    form.addEventListener('change', () => {
-      saveIframeState(idx, ifr.contentWindow);
-    });
-  });
+})
+backBtn.onclick=()=>iframeElements[activeIndex].contentWindow.history.back()
+forwardBtn.onclick=()=>iframeElements[activeIndex].contentWindow.history.forward()
+reloadBtn.onclick=()=>iframeElements[activeIndex].contentWindow.location.reload()
+moreButton.onclick=()=>document.getElementById('dropdownMenu').classList.toggle('show')
+fullscreenBtn.onclick=()=>iframeElements[activeIndex].requestFullscreen?.()
+installAppBtn.onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();deferredPrompt=null}}
+if(!tabs.length){
+  const entry=localStorage.getItem('lastEntry')
+  tabs=[entry?{name:entry,url:'static/iframe.html#'+encodeURIComponent(entry)}:{name:'New Tab',url:'newtab.html'}]
 }
-
-function saveIframeState(idx, iframeWindow, nestedState = {}) {
-  const scrollPosition = iframeWindow.scrollY;
-  const formData = {};
-
-  // Get form data
-  const forms = iframeWindow.document.forms;
-  Array.from(forms).forEach(form => {
-    Array.from(form.querySelectorAll('input, textarea, select')).forEach(input => {
-      if (input.name) {
-        formData[input.name] = input.value;
-      }
-    });
-  });
-
-  // Save to localStorage
-  localStorage.setItem(`iframeState-${idx}`, JSON.stringify({ scrollPosition, formData, nestedState }));
-}
-
-function renderTabs() {
-  tabsContainer.innerHTML = '';
-  tabs.forEach((tab, i) => {
-    const el = document.createElement('div');
-    el.className = 'tab' + (i === activeIndex ? ' selected' : '');
-
-    const favIcon = document.createElement('img');
-    try {
-      const domain = new URL(tab.url).hostname;
-      favIcon.src = `https://www.google.com/s2/favicons?domain=${domain}`;
-    } catch {
-      favIcon.src = 'img/logo.png';
-    }
-    favIcon.className = 'icon';
-
-    const label = document.createElement('span');
-    label.textContent = tab.name;
-
-    const close = document.createElement('span');
-    close.textContent = '×';
-    close.className = 'close';
-    close.onclick = e => {
-      e.stopPropagation();
-      iframeElements[i].remove();
-      tabs.splice(i, 1);
-      iframeElements.splice(i, 1);
-      if (activeIndex >= tabs.length) activeIndex = tabs.length - 1;
-      saveAndRender();
-    };
-
-    el.appendChild(favIcon);
-    el.appendChild(label);
-    el.appendChild(close);
-    el.onclick = () => switchToTab(i);
-    tabsContainer.appendChild(el);
-  });
-
-  const addTab = document.createElement('div');
-  addTab.className = 'add-tab';
-  addTab.textContent = '+';
-  addTab.onclick = () => {
-    const url = 'newtab.html';
-    tabs.push({ name: 'New Tab', url });
-    activeIndex = tabs.length - 1;
-    createIframe({ url }, activeIndex);
-    saveAndRender();
-  };
-  tabsContainer.appendChild(addTab);
-}
-
-function switchToTab(idx) {
-  activeIndex = idx;
-  localStorage.setItem('activeTab', activeIndex);
-  iframeElements.forEach((ifr, i) => {
-    ifr.classList.toggle('active', i === idx);
-  });
-  urlInput.value = tabs[idx].url;
-  renderTabs();
-}
-
-function saveAndRender() {
-  localStorage.setItem('tabs', JSON.stringify(tabs));
-  renderTabs();
-  switchToTab(activeIndex);
-}
-
-urlInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter') {
-    let url = urlInput.value.trim();
-    url = formatURL(url);
-    tabs[activeIndex].url = url;
-    tabs[activeIndex].name = url;
-    iframeElements[activeIndex].src = url;
-    saveAndRender();
-  }
-});
-
-backBtn.onclick = () => iframeElements[activeIndex].contentWindow.history.back();
-forwardBtn.onclick = () => iframeElements[activeIndex].contentWindow.history.forward();
-reloadBtn.onclick = () => iframeElements[activeIndex].contentWindow.location.reload();
-moreButton.onclick = () => document.getElementById('dropdownMenu').classList.toggle('show');
-fullscreenBtn.onclick = () => iframeElements[activeIndex].requestFullscreen?.();
-installAppBtn.onclick = async () => {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    deferredPrompt = null;
-  }
-};
-
-if (!tabs.length) tabs = [{ name: 'New Tab', url: 'newtab.html' }];
-tabs.forEach((tab, i) => createIframe(tab, i));
-saveAndRender();
-</script>
-
+tabs.forEach((t,i)=>createIframe(t,i))
+saveAndRender()
+  </script>
 </body>
 </html>
