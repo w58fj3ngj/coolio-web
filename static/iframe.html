@@ -1,20 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="uv/uv.bundle.js"></script>
-  <script src="uv/uv.config.js"></script>
-  <script src="register-sw.js"></script>
-  <script src="iframe.js"></script>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="uv/uv.bundle.js" defer></script>
+  <script src="uv/uv.config.js" defer></script>
+  <script src="register-sw.js" defer></script>
+  <script src="iframe.js" defer></script>
   <style>
-  
-  body {
-  background: #111;
-  }
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #111;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
   </style>
 </head>
 <body>
+  <iframe id="page-frame"></iframe>
+
+  <script>
+    const frame = document.getElementById('page-frame');
+    const rawUrl = window.location.hash.substring(1);
+
+    if (!rawUrl) {
+      frame.srcdoc = '<h1 style="color: white; text-align: center; margin-top: 20%;">No URL provided.</h1>';
+    } else {
+      frame.src = __uv$config.prefix + __uv$config.encodeUrl(rawUrl);
+    }
+
+    frame.addEventListener('load', async () => {
+      try {
+        const res = await fetch(rawUrl);
+        const html = await res.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const title = doc.querySelector('title')?.innerText || rawUrl;
+        let icon = doc.querySelector("link[rel~='icon']")?.href;
+
+        if (icon && !icon.startsWith('http')) {
+          const base = new URL(rawUrl).origin;
+          icon = base + (icon.startsWith('/') ? icon : '/' + icon);
+        }
+
+        window.parent.postMessage({
+          type: 'update-tab',
+          url: `static/iframe.html#${rawUrl}`,
+          name: title,
+          icon: icon || 'https://www.google.com/s2/favicons?domain=' + new URL(rawUrl).hostname
+        }, '*');
+      } catch (err) {
+        console.error('Error updating tab info:', err);
+      }
+    });
+  </script>
 </body>
 </html>
