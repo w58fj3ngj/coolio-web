@@ -172,16 +172,25 @@
     tabs.forEach((tab, i) => createIframe(tab, i));
     saveAndRender();
 	
-	window.addEventListener('message', event => {
-    if (event.data.type === 'add-tab') {
-      const { url, name, icon } = event.data;
-      const newTab = {
-        url: url,
-        name: name,
-        icon: icon
-      };
-      tabs.push(newTab);
-      saveAndRender(); // Function to save tabs and update the tab display
+	window.addEventListener('storage', event => {
+    if (event.key === 'newTabData') {
+      const tabData = JSON.parse(localStorage.getItem('newTabData'));
+
+      if (tabData) {
+        tabs.push(tabData); // Add the new tab
+        saveAndRender();    // Call the save and render function to update the UI
+        localStorage.removeItem('newTabData'); // Remove the temporary storage entry
+      }
+    }
+  });
+
+  // If the page loads and we have data in localStorage, process it immediately
+  window.addEventListener('DOMContentLoaded', () => {
+    const tabData = JSON.parse(localStorage.getItem('newTabData'));
+    if (tabData) {
+      tabs.push(tabData);
+      saveAndRender();
+      localStorage.removeItem('newTabData'); // Clean up once data is used
     }
   });
   </script>
