@@ -290,16 +290,15 @@
       dropdownMenu.classList.toggle('show');
     });
 
-    document.addEventListener('DOMContentLoaded', () => {
-  const input = document.getElementById('uv-address');
-  const form = document.getElementById('uv-form');
-  const iframe = document.getElementById('webview');
+    const input = document.getElementById('uv-address');
+const form = document.getElementById('uv-form');
+const iframe = document.getElementById('webview');
 
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const query = encodeURIComponent(input.value.trim());
-    iframe.src = `static/iframe.html#${query}`;
-  });
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const query = input.value.trim();
+  if (!query) return;
+  iframe.src = `static/iframe.html#${encodeURIComponent(query)}`;
 });
 
   </script>
