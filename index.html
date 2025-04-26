@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="static/uv/uv.bundle.js" defer></script>
+  <script src="static/uv/uv.config.js" defer></script>
+  <script src="static/register-sw.js" defer></script>
+  <script src="static/search.js" defer></script>
+  <script src="static/index.js" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Browser UI</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f9f9f9;
+      color: #333;
+      overflow: hidden;
+    }
+
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #fff, #e0e0e0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #ccc;
+      border-top: 4px solid #007bff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .container {
+      padding: 8px;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tab,
+    .add-tab {
+      display: flex;
+      align-items: center;
+      padding: 4px 8px;
+      background: #fff;
+      border-radius: 6px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .tab:hover,
+    .add-tab:hover {
+      background: #f0f0f0;
+    }
+
+    .tab.selected {
+      background: #cce0ff;
+      border: 1px solid #4d94ff;
+    }
+
+    .tab .close {
+      margin-left: 6px;
+      color: #999;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .tab .close:hover {
+      color: #333;
+    }
+
+    .url-bar-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+
+    .nav-button,
+    .more-button {
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 6px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.3s;
+    }
+
+    .nav-button:hover,
+    .more-button:hover {
+      background: #f0f0f0;
+    }
+
+    .url-bar {
+      flex-grow: 1;
+      padding: 6px 10px;
+      font-size: 13px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .dropdown {
+      position: absolute;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 6px;
+      right: 8px;
+      top: 74px;
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      opacity: 0;
+      transform: scale(0.95);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .dropdown.show {
+      display: flex;
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .dropdown button {
+      padding: 4px 8px;
+      border: none;
+      background: #f9f9f9;
+      border-radius: 3px;
+      cursor: pointer;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    .dropdown button:hover {
+      background: #eaeaea;
+    }
+
+    .iframe-container {
+      margin-top: 10px;
+      width: 100%;
+      height: calc(100vh - 100px);
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #fff;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="loading-screen" id="loading"><div class="spinner"></div></div>
+  <div class="container" id="mainContent">
+    <div class="tabs" id="tabs"></div>
+    <div class="url-bar-wrapper">
+      <button class="nav-button">&#8592;</button>
+      <button class="nav-button">&#8594;</button>
+      <button class="nav-button">&#10227;</button>
+      <form id="uv-form" class="url-bar">
+        <input id="uv-search-engine" value="https://duckduckgo.com/?q=%s" type="hidden" />
+        <input id="uv-address" type="text" placeholder="Search or enter a URL." autocomplete="off" />
+      </form>
+      <button class="more-button" id="moreButton">&#8942;</button>
+    </div>
+    <div class="dropdown" id="dropdownMenu">
+      <button>New Window</button>
+      <button>History</button>
+      <button>Downloads</button>
+      <button>Settings</button>
+    </div>
+    <div class="iframe-container">
+      <iframe src="newtab.html" id="webview"></iframe>
+    </div>
+  </div>
+  <script>
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        document.getElementById('loading').style.opacity = '0';
+        setTimeout(() => {
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('mainContent').style.opacity = '1';
+        }, 500);
+      }, 500);
+    });
+
+    const tabsContainer = document.getElementById('tabs');
+    const addTabBtn = document.createElement('div');
+    addTabBtn.className = 'add-tab';
+    addTabBtn.textContent = '+';
+    tabsContainer.appendChild(addTabBtn);
+
+    const iframe = document.getElementById('webview');
+    const urlBar = document.querySelector('.url-bar');
+    let activeTab = null;
+
+    const savedTabs = JSON.parse(localStorage.getItem('tabs')) || [];
+
+    function createTab(tabName = 'New Tab', url = 'newtab.html') {
+      const tab = document.createElement('div');
+      tab.className = 'tab';
+      tab.innerHTML = `${tabName} <span class="close">&times;</span>`;
+      tab.querySelector('.close').addEventListener('click', () => removeTab(tab));
+      tab.addEventListener('click', () => switchTab(tab, url));
+      tabsContainer.insertBefore(tab, addTabBtn);
+      return tab;
+    }
+
+    function removeTab(tab) {
+      const index = Array.from(tabsContainer.children).indexOf(tab);
+      if (index !== -1) {
+        tabsContainer.removeChild(tab);
+        savedTabs.splice(index, 1);
+        localStorage.setItem('tabs', JSON.stringify(savedTabs));
+        const nextTab = tabsContainer.children[index] || tabsContainer.children[index - 1];
+        if (nextTab && nextTab.classList.contains('tab')) {
+          switchTab(nextTab, savedTabs[index]?.url || savedTabs[index - 1]?.url || 'newtab.html');
+        }
+      }
+    }
+
+    function switchTab(tab, url) {
+      const allTabs = Array.from(tabsContainer.querySelectorAll('.tab'));
+      allTabs.forEach(t => t.classList.remove('selected'));
+      tab.classList.add('selected');
+      activeTab = tab;
+      iframe.src = url;
+      urlBar.value = url;
+    }
+
+    savedTabs.forEach(tab => createTab(tab.name, tab.url));
+
+    if (savedTabs.length === 0) {
+      const newTab = createTab('New Tab', 'newtab.html');
+      switchTab(newTab, 'newtab.html');
+    } else {
+      switchTab(tabsContainer.querySelector('.tab'), savedTabs[0].url);
+    }
+
+    addTabBtn.addEventListener('click', () => {
+      const newTab = createTab('New Tab', 'newtab.html');
+      savedTabs.push({ name: 'New Tab', url: 'newtab.html' });
+      localStorage.setItem('tabs', JSON.stringify(savedTabs));
+      switchTab(newTab, 'newtab.html');
+    });
+
+    urlBar.addEventListener('focus', () => {
+      urlBar.select();
+    });
+
+    const moreButton = document.getElementById('moreButton');
+    const dropdownMenu = document.getElementById('dropdownMenu');
+    moreButton.addEventListener('click', e => {
+      dropdownMenu.classList.toggle('show');
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const input = document.getElementById('uv-address');
+      const form = document.getElementById('uv-form');
+    });
+  </script>
+</body>
+</html>
