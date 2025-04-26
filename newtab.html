@@ -1,55 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>New Tab</title>
-<style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Segoe UI',sans-serif;background:linear-gradient(to bottom right,#f9f9f9,#ebf6ff);color:#333;height:100vh;display:flex;align-items:center;justify-content:center}
-  .container{text-align:center;padding:40px;width:90%;max-width:600px;margin-bottom:90px}
-  .title{font-size:50px;font-weight:bold;margin-bottom:30px}
-  .title span{color:#007bff}
-  .search-bar-wrapper{margin-top:20px;display:flex;justify-content:center}
-  .search-bar{padding:15px 25px;width:100%;font-size:18px;border:2px solid #ccc;border-radius:50px;box-shadow:0 4px 10px rgba(0,0,0,0.1);transition:all .3s ease}
-  .search-bar:focus{outline:none;border-color:#007bff;background:#f0f8ff;box-shadow:0 6px 12px rgba(0,123,255,0.2)}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New Tab</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #f9f9f9, #ebf6ff);
+      color: #333;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      text-align: center;
+      padding: 40px;
+      width: 90%;
+      max-width: 600px;
+    }
+    .title {
+      font-size: 50px;
+      font-weight: bold;
+      margin-bottom: 30px;
+    }
+    .title span { color: #007bff; }
+    .search-bar {
+      padding: 15px 25px;
+      width: 100%;
+      font-size: 18px;
+      border: 2px solid #ccc;
+      border-radius: 50px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+    .search-bar:focus {
+      outline: none;
+      border-color: #007bff;
+      background: #f0f8ff;
+      box-shadow: 0 6px 12px rgba(0, 123, 255, 0.2);
+    }
+  </style>
 </head>
 <body>
   <div class="container">
     <div class="title">Coolio <span>Web</span></div>
-    <div class="search-bar-wrapper">
-      <form id="uv-form" style="width:100%">
-        <input id="uv-search-engine" value="https://duckduckgo.com/?q=%s" type="hidden" />
-        <input id="uv-address" type="text" class="search-bar" placeholder="Search or enter a URL" autocomplete="off" />
-      </form>
-    </div>
+    <form id="uv-form">
+      <input id="uv-address" type="text" class="search-bar" placeholder="Search or enter a URL" autocomplete="off" />
+    </form>
   </div>
+
   <script>
-document.addEventListener('DOMContentLoaded',()=>{
-  const form=document.getElementById('uv-form')
-  const input=document.getElementById('uv-address')
-  form.addEventListener('submit',async e=>{
-    e.preventDefault()
-    const raw=input.value.trim()
-    window.parent.postMessage({type:'url-entry',text:raw},'*')
-    let url=raw
-    if(!url.startsWith('http'))url='https://'+url
-    const proxy=window.__uv$config?window.__uv$config.prefix+window.__uv$config.encodeUrl(url):'https://api.allorigins.win/raw?url='+encodeURIComponent(url)
-    try{
-      const res=await fetch(proxy)
-      const html=await res.text()
-      const doc=new DOMParser().parseFromString(html,'text/html')
-      const title=doc.querySelector('title')?.innerText||url
-      let icon=doc.querySelector("link[rel~='icon']")?.href
-      if(icon&&!icon.startsWith('http')){
-        const base=new URL(url).origin
-        icon=base+(icon.startsWith('/')?icon:'/'+icon)
-      }
-      window.parent.postMessage({type:'add-tab',url:`static/iframe.html#${encodeURIComponent(url)}`,name:title,icon:icon||`https://www.google.com/s2/favicons?domain=${new URL(url).hostname}`},'*')
-    }catch(err){}
-  })
-})
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('uv-form');
+      const input = document.getElementById('uv-address');
+
+      form.addEventListener('submit', async e => {
+        e.preventDefault();
+        let url = input.value.trim();
+        if (!url.startsWith('http')) url = 'https://' + url;
+
+        const proxy = window.__uv$config
+          ? window.__uv$config.prefix + window.__uv$config.encodeUrl(url)
+          : 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+
+        try {
+          const res  = await fetch(proxy);
+          const html = await res.text();
+          const doc  = new DOMParser().parseFromString(html, 'text/html');
+          const title = doc.querySelector('title')?.innerText || url;
+          let icon  = doc.querySelector("link[rel~='icon']")?.href;
+          if (icon && !icon.startsWith('http')) {
+            const base = new URL(url).origin;
+            icon = base + (icon.startsWith('/') ? icon : '/' + icon);
+          }
+          window.parent.postMessage({
+            type: 'add-tab',
+            url: `static/iframe.html#${encodeURIComponent(url)}`,
+            name: title,
+            icon: icon || `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}`
+          }, '*');
+        } catch (err) {
+          console.error('Could not fetch via proxy:', err);
+        }
+      });
+    });
   </script>
 </body>
 </html>
