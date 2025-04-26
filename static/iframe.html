@@ -1,154 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="static/uv/uv.bundle.js" defer></script>
-  <script src="static/uv/uv.config.js" defer></script>
-  <script src="static/register-sw.js" defer></script>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="uv/uv.bundle.js"></script>
+  <script src="uv/uv.config.js"></script>
+  <script src="register-sw.js"></script>
+  <script src="iframe.js"></script>
+
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to bottom right, #f9f9f9, #ebf6ff);
-      color: #333;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-    .top-bar {
-      background: #007bff;
-      padding: 10px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .top-bar input {
-      flex: 1;
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 5px;
-      border: none;
-    }
-    .tab-bar {
-      display: flex;
-      overflow-x: auto;
-      background: #ddd;
-      padding: 5px;
-    }
-    .tab {
-      background: white;
-      border-radius: 5px;
-      padding: 5px 10px;
-      margin-right: 5px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      min-width: 100px;
-      cursor: pointer;
-    }
-    .tab img {
-      width: 16px;
-      height: 16px;
-    }
-    .iframe-container {
-      flex: 1;
-      position: relative;
-    }
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-    iframe.hidden {
-      display: none;
-    }
+  
+  body {
+  background: #111;
+  }
   </style>
 </head>
 <body>
-
-  <div class="top-bar">
-    <form id="uv-form" style="flex: 1; display: flex;">
-      <input id="uv-address" type="text" placeholder="Search or enter a URL" autocomplete="off" />
-    </form>
-  </div>
-
-  <div class="tab-bar" id="tab-bar"></div>
-
-  <div class="iframe-container" id="iframe-container"></div>
-
-  <script>
-    const form = document.getElementById('uv-form');
-    const input = document.getElementById('uv-address');
-    const tabBar = document.getElementById('tab-bar');
-    const iframeContainer = document.getElementById('iframe-container');
-
-    let tabs = [];
-    let activeTab = null;
-
-    function createTab({ url, name, icon }) {
-      const iframe = document.createElement('iframe');
-      iframe.src = `static/iframe.html#${encodeURIComponent(url)}`;
-      iframe.dataset.index = tabs.length;
-      iframe.className = 'iframe';
-      if (tabs.length > 0) iframe.classList.add('hidden');
-      iframeContainer.appendChild(iframe);
-
-      const tab = document.createElement('div');
-      tab.className = 'tab';
-      tab.dataset.index = tabs.length;
-      tab.innerHTML = `<img src="${icon}" alt="icon"><span>${name}</span>`;
-      tab.addEventListener('click', () => {
-        switchTab(parseInt(tab.dataset.index));
-      });
-      tabBar.appendChild(tab);
-
-      tabs.push({ iframe, tab });
-      if (tabs.length === 1) switchTab(0); // first tab auto activate
-    }
-
-    function switchTab(index) {
-      tabs.forEach(({ iframe, tab }, i) => {
-        if (i === index) {
-          iframe.classList.remove('hidden');
-          tab.style.background = '#fff';
-          activeTab = i;
-          input.value = decodeURIComponent(iframe.src.split('#')[1]);
-        } else {
-          iframe.classList.add('hidden');
-          tab.style.background = '#eee';
-        }
-      });
-    }
-
-    window.addEventListener('message', (event) => {
-      const data = event.data;
-      if (data.type === 'add-tab') {
-        createTab(data);
-      } else if (data.type === 'update-tab') {
-        const matching = tabs.find(t => t.iframe.src.endsWith(encodeURIComponent(data.url.split('#')[1])));
-        if (matching) {
-          const tab = matching.tab;
-          tab.innerHTML = `<img src="${data.icon}" alt="icon"><span>${data.name}</span>`;
-        }
-      }
-    });
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      let url = input.value.trim();
-      if (!url.startsWith('http')) url = 'https://' + url;
-      window.parent.postMessage({
-        type: 'add-tab',
-        url: url,
-        name: 'Loading...',
-        icon: 'https://www.google.com/s2/favicons?domain=' + new URL(url).hostname
-      }, '*');
-    });
-  </script>
-
 </body>
 </html>
