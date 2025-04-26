@@ -56,120 +56,138 @@
   </div>
 
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js');
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+});
+
+const tabsContainer = document.getElementById('tabs');
+const urlInput = document.getElementById('url-input');
+const iframeContainer = document.getElementById('iframeContainer');
+const backBtn = document.getElementById('backBtn');
+const forwardBtn = document.getElementById('forwardBtn');
+const reloadBtn = document.getElementById('reloadBtn');
+const moreButton = document.getElementById('moreButton');
+const newTabBtn = document.getElementById('newTabBtn');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+const installAppBtn = document.getElementById('installAppBtn');
+
+let tabs = JSON.parse(localStorage.getItem('tabs')) || [];
+let activeIndex = parseInt(localStorage.getItem('activeTab')) || 0;
+let iframeElements = [];
+
+function formatURL(input) {
+  if (input.startsWith('http://') || input.startsWith('https://')) return input;
+  if (input.includes('.') || input.includes(':')) return 'https://' + input;
+  return 'https://duckduckgo.com/?q=' + encodeURIComponent(input);
+}
+
+function createIframe(tab, idx) {
+  const ifr = document.createElement('iframe');
+  ifr.src = tab.url;
+  ifr.dataset.index = idx;
+  ifr.classList.add('iframe');
+  ifr.classList.toggle('active', idx === activeIndex);
+  iframeContainer.appendChild(ifr);
+  iframeElements[idx] = ifr;
+}
+
+function renderTabs() {
+  tabsContainer.innerHTML = '';
+  tabs.forEach((tab, i) => {
+    const el = document.createElement('div');
+    el.className = 'tab' + (i === activeIndex ? ' selected' : '');
+
+    const favIcon = document.createElement('img');
+    try {
+      const domain = new URL(tab.url).hostname;
+      favIcon.src = `https://www.google.com/s2/favicons?domain=${domain}`;
+    } catch {
+      favIcon.src = 'img/logo.png';
     }
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', e => {
-      e.preventDefault();
-      deferredPrompt = e;
-    });
+    favIcon.className = 'icon';
 
-    const tabsContainer = document.getElementById('tabs');
-    const urlInput = document.getElementById('url-input');
-    const iframeContainer = document.getElementById('iframeContainer');
-    const backBtn = document.getElementById('backBtn');
-    const forwardBtn = document.getElementById('forwardBtn');
-    const reloadBtn = document.getElementById('reloadBtn');
-    const moreButton = document.getElementById('moreButton');
-    const newTabBtn = document.getElementById('newTabBtn');
-    const fullscreenBtn = document.getElementById('fullscreenBtn');
-    const installAppBtn = document.getElementById('installAppBtn');
+    const label = document.createElement('span');
+    label.textContent = tab.name;
 
-    let tabs = JSON.parse(localStorage.getItem('tabs')) || [];
-    let activeIndex = parseInt(localStorage.getItem('activeTab')) || 0;
-
-    function createIframe(tab, idx) {
-      const ifr = document.createElement('iframe');
-      ifr.src = tab.url;
-      ifr.dataset.index = idx;
-      ifr.classList.toggle('active', idx === activeIndex);
-      iframeContainer.appendChild(ifr);
-      return ifr;
-    }
-
-    function renderTabs() {
-      tabsContainer.innerHTML = '';
-      iframeContainer.innerHTML = '';
-      tabs.forEach((tab, i) => {
-        const el = document.createElement('div');
-        el.className = 'tab' + (i === activeIndex ? ' selected' : '');
-        el.innerHTML = `${tab.name} <span class="close">&times;</span>`;
-        el.onclick = () => switchToTab(i);
-        el.querySelector('.close').onclick = e => {
-          e.stopPropagation();
-          tabs.splice(i, 1);
-          if (activeIndex >= tabs.length) activeIndex = tabs.length - 1;
-          saveAndRender();
-        };
-        tabsContainer.appendChild(el);
-        createIframe(tab, i);
-      });
-      const addTab = document.createElement('div');
-      addTab.className = 'add-tab';
-      addTab.textContent = '+';
-      addTab.onclick = () => {
-        tabs.push({ name: 'New Tab', url: 'newtab.html' });
-        activeIndex = tabs.length - 1;
-        saveAndRender();
-      };
-      tabsContainer.appendChild(addTab);
-    }
-
-    function switchToTab(idx) {
-      activeIndex = idx;
-      localStorage.setItem('activeTab', activeIndex);
-      Array.from(iframeContainer.children).forEach(ifr => {
-        ifr.classList.toggle('active', parseInt(ifr.dataset.index) === idx);
-      });
-      urlInput.value = tabs[idx].url;
-      renderTabs();
-    }
-
-    function saveAndRender() {
-      localStorage.setItem('tabs', JSON.stringify(tabs));
-      renderTabs();
-      switchToTab(activeIndex);
-    }
-
-    urlInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') {
-        let url = urlInput.value.trim();
-        if (!url.startsWith('http')) url = 'https://' + url;
-        tabs[activeIndex].url = url;
-        tabs[activeIndex].name = urlInput.value;
-        saveAndRender();
-      }
-    });
-
-    backBtn.onclick = () => {
-      const ifr = iframeContainer.querySelector('iframe.active').contentWindow;
-      ifr.history.back();
-    };
-    forwardBtn.onclick = () => {
-      const ifr = iframeContainer.querySelector('iframe.active').contentWindow;
-      ifr.history.forward();
-    };
-    reloadBtn.onclick = () => {
-      const ifr = iframeContainer.querySelector('iframe.active').contentWindow;
-      ifr.location.reload();
-    };
-    moreButton.onclick = () => {
-      document.getElementById('dropdownMenu').classList.toggle('show');
-    };
-    fullscreenBtn.onclick = () => {
-      const ifr = iframeContainer.querySelector('iframe.active');
-      ifr.requestFullscreen?.() || ifr.webkitRequestFullscreen?.();
-    };
-    installAppBtn.onclick = async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt = null;
-      }
+    const close = document.createElement('span');
+    close.textContent = '×';
+    close.className = 'close';
+    close.onclick = e => {
+      e.stopPropagation();
+      iframeElements[i].remove();
+      tabs.splice(i, 1);
+      iframeElements.splice(i, 1);
+      if (activeIndex >= tabs.length) activeIndex = tabs.length - 1;
+      saveAndRender();
     };
 
-    if (!tabs.length) tabs = [{ name: 'New Tab', url: 'newtab.html' }];
+    el.appendChild(favIcon);
+    el.appendChild(label);
+    el.appendChild(close);
+    el.onclick = () => switchToTab(i);
+    tabsContainer.appendChild(el);
+  });
+
+  const addTab = document.createElement('div');
+  addTab.className = 'add-tab';
+  addTab.textContent = '+';
+  addTab.onclick = () => {
+    const url = 'newtab.html';
+    tabs.push({ name: 'New Tab', url });
+    activeIndex = tabs.length - 1;
+    createIframe({ url }, activeIndex);
     saveAndRender();
-  </script>
+  };
+  tabsContainer.appendChild(addTab);
+}
+
+function switchToTab(idx) {
+  activeIndex = idx;
+  localStorage.setItem('activeTab', activeIndex);
+  iframeElements.forEach((ifr, i) => {
+    ifr.classList.toggle('active', i === idx);
+  });
+  urlInput.value = tabs[idx].url;
+  renderTabs();
+}
+
+function saveAndRender() {
+  localStorage.setItem('tabs', JSON.stringify(tabs));
+  renderTabs();
+  switchToTab(activeIndex);
+}
+
+urlInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    let url = urlInput.value.trim();
+    url = formatURL(url);
+    tabs[activeIndex].url = url;
+    tabs[activeIndex].name = url;
+    iframeElements[activeIndex].src = url;
+    saveAndRender();
+  }
+});
+
+backBtn.onclick = () => iframeElements[activeIndex].contentWindow.history.back();
+forwardBtn.onclick = () => iframeElements[activeIndex].contentWindow.history.forward();
+reloadBtn.onclick = () => iframeElements[activeIndex].contentWindow.location.reload();
+moreButton.onclick = () => document.getElementById('dropdownMenu').classList.toggle('show');
+fullscreenBtn.onclick = () => iframeElements[activeIndex].requestFullscreen?.();
+installAppBtn.onclick = async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt = null;
+  }
+};
+
+if (!tabs.length) tabs = [{ name: 'New Tab', url: 'newtab.html' }];
+tabs.forEach((tab, i) => createIframe(tab, i));
+saveAndRender();
+</script>
 </body>
 </html>
