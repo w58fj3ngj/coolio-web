@@ -94,6 +94,56 @@ function createIframe(tab, idx) {
   ifr.classList.toggle('active', idx === activeIndex);
   iframeContainer.appendChild(ifr);
   iframeElements[idx] = ifr;
+
+  // Check if there's saved state for this iframe
+  const savedState = JSON.parse(localStorage.getItem(`iframeState-${idx}`));
+  if (savedState) {
+    // Restore scroll position
+    ifr.contentWindow.scrollTo(0, savedState.scrollPosition);
+    
+    // Restore form data (if available)
+    const forms = ifr.contentWindow.document.forms;
+    if (forms.length > 0) {
+      Array.from(forms).forEach(form => {
+        form.querySelectorAll('input, textarea, select').forEach(input => {
+          if (savedState.formData[input.name]) {
+            input.value = savedState.formData[input.name];
+          }
+        });
+      });
+    }
+  }
+
+  // Listen for scroll events
+  ifr.contentWindow.addEventListener('scroll', () => {
+    saveIframeState(idx, ifr.contentWindow);
+  });
+
+  // Listen for form changes
+  const forms = ifr.contentWindow.document.forms;
+  Array.from(forms).forEach(form => {
+    form.addEventListener('change', () => {
+      saveIframeState(idx, ifr.contentWindow);
+    });
+  });
+}
+
+function saveIframeState(idx, iframeWindow) {
+  const scrollPosition = iframeWindow.scrollY;
+  const formData = {};
+
+  // Get form data
+  const forms = iframeWindow.document.forms;
+  Array.from(forms).forEach(form => {
+    Array.from(form.querySelectorAll('input, textarea, select')).forEach(input => {
+      if (input.name) {
+        formData[input.name] = input.value;
+      }
+    });
+  });
+
+  // Save to localStorage
+  localStorage.setItem(`iframeState-${idx}`, JSON.stringify({ scrollPosition, formData }));
 }
 
 function renderTabs() {
