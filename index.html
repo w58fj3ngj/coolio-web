@@ -186,7 +186,7 @@
       <button><img src="icons/newtab.png" class="icon">New Tab</button>
 	  <div class="divider"></div>
 <button id="fullscreenBtn"><img src="icons/fullscreen.png" class="icon">Fullscreen</button>
-<button><img src="icons/downloads.png" class="icon">Download App</button>
+<button id="installAppBtn"><img src="icons/downloads.png" class="icon">Download App</button>
 <div class="divider"></div>
 <button><img src="icons/settings.png" class="icon">Settings</button>
     </div>
@@ -223,6 +223,13 @@
         });
         tabsContainer.appendChild(el);
       });
+
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+});
 
       const addTab = document.createElement('div');
       addTab.className = 'add-tab';
@@ -306,14 +313,12 @@
     }
   });
   
-  window.addEventListener('message', (event) => {
-    if (event.data?.type === 'add-tab') {
-      const { url, name, icon } = event.data;
-      tabs.push({ name, url, icon });
-      activeIndex = tabs.length - 1;
-      saveAndRender();
-    }
-  });
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js')
+    .then(reg => console.log('Service worker registered', reg))
+    .catch(err => console.error('Service worker registration failed', err));
+}
+  
   </script>
 </body>
 </html>
