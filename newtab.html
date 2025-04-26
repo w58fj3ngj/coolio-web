@@ -10,12 +10,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>New Tab</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(to bottom right, #f9f9f9, #ebf6ff);
@@ -25,32 +20,24 @@
       align-items: center;
       justify-content: center;
     }
-
     .container {
       text-align: center;
       padding: 40px;
-      background: transparent;
       width: 90%;
       max-width: 600px;
-	  margin-bottom: 90px;
+      margin-bottom: 90px;
     }
-
     .title {
       font-size: 50px;
       font-weight: bold;
       margin-bottom: 30px;
     }
-
-    .title span {
-      color: #007bff;
-    }
-
+    .title span { color: #007bff; }
     .search-bar-wrapper {
       margin-top: 20px;
       display: flex;
       justify-content: center;
     }
-
     .search-bar {
       padding: 15px 25px;
       width: 100%;
@@ -60,7 +47,6 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
       transition: all 0.3s ease;
     }
-
     .search-bar:focus {
       outline: none;
       border-color: #007bff;
@@ -82,46 +68,39 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-  const input = document.getElementById('uv-address');
-  const form = document.getElementById('uv-form');
+      const input = document.getElementById('uv-address');
+      const form = document.getElementById('uv-form');
 
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const query = input.value.trim();
-    if (!query) return;
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        let url = input.value.trim();
+        if (!url.startsWith('http')) url = 'https://' + url;
 
-    let url = query;
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      url = 'https://duckduckgo.com/?q=' + encodeURIComponent(query);
-    }
+        try {
+          const res = await fetch(url);
+          const text = await res.text();
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(text, 'text/html');
+          const title = doc.querySelector('title')?.innerText || url;
+          let icon = doc.querySelector("link[rel~='icon']")?.href;
 
-    // Create a hidden iframe to get page info
-    const tempIframe = document.createElement('iframe');
-    tempIframe.style.display = 'none';
-    document.body.appendChild(tempIframe);
-    tempIframe.src = url;
+          if (icon && !icon.startsWith('http')) {
+            const base = new URL(url).origin;
+            icon = base + (icon.startsWith('/') ? icon : '/' + icon);
+          }
 
-    tempIframe.onload = () => {
-      try {
-        const title = tempIframe.contentDocument.title || query;
-        const favicon = tempIframe.contentDocument.querySelector('link[rel*="icon"]')?.href || '/default-favicon.png';
+          window.parent.postMessage({
+            type: 'add-tab',
+            url: `static/iframe.html#${url}`,
+            name: title,
+            icon: icon || 'https://www.google.com/s2/favicons?domain=' + new URL(url).hostname
+          }, '*');
 
-        // Send message to parent (assuming the browser UI has the iframe inside it)
-        window.parent.postMessage({
-          type: 'new-tab',
-          title: title,
-          favicon: favicon,
-          url: url
-        }, '*');
-
-        // Clean up
-        document.body.removeChild(tempIframe);
-      } catch (error) {
-        console.error('Error loading page info:', error);
-      }
-    };
-  });
-});
+        } catch (err) {
+          console.error('Error loading site:', err);
+        }
+      });
+    });
   </script>
 </body>
 </html>
