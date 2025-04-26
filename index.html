@@ -56,200 +56,134 @@
   </div>
 
   <script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js');
-}
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-});
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('service-worker.js'); }
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; });
 
-const tabsContainer = document.getElementById('tabs');
-const urlInput = document.getElementById('url-input');
-const iframeContainer = document.getElementById('iframeContainer');
-const backBtn = document.getElementById('backBtn');
-const forwardBtn = document.getElementById('forwardBtn');
-const reloadBtn = document.getElementById('reloadBtn');
-const moreButton = document.getElementById('moreButton');
-const newTabBtn = document.getElementById('newTabBtn');
-const fullscreenBtn = document.getElementById('fullscreenBtn');
-const installAppBtn = document.getElementById('installAppBtn');
+    const tabsContainer = document.getElementById('tabs');
+    const urlInput = document.getElementById('url-input');
+    const iframeContainer = document.getElementById('iframeContainer');
+    const backBtn = document.getElementById('backBtn');
+    const forwardBtn = document.getElementById('forwardBtn');
+    const reloadBtn = document.getElementById('reloadBtn');
+    const moreButton = document.getElementById('moreButton');
+    const newTabBtn = document.getElementById('newTabBtn');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const installAppBtn = document.getElementById('installAppBtn');
 
-let tabs = JSON.parse(localStorage.getItem('tabs')) || [];
-let activeIndex = parseInt(localStorage.getItem('activeTab')) || 0;
-let iframeElements = [];
+    let tabs = JSON.parse(localStorage.getItem('tabs')) || [];
+    let activeIndex = parseInt(localStorage.getItem('activeTab')) || 0;
+    let iframeElements = [];
 
-function createIframe(tab, idx) {
-  const ifr = document.createElement('iframe');
-  ifr.src = tab.url;
-  ifr.dataset.index = idx;
-  ifr.classList.add('iframe');
-  ifr.classList.toggle('active', idx === activeIndex);
-  iframeContainer.appendChild(ifr);
-  iframeElements[idx] = ifr;
+    function formatURL(input) {
+      if (input.startsWith('http://') || input.startsWith('https://')) return input;
+      if (input.includes('.') || input.includes(':')) return 'https://' + input;
+      return 'https://duckduckgo.com/?q=' + encodeURIComponent(input);
+    }
 
-  // Listen for messages from nested iframes to save their state
-  ifr.onload = () => {
-    // Check for nested iframes and add message listeners for them
-    const nestedIframes = ifr.contentWindow.document.querySelectorAll('iframe');
-    nestedIframes.forEach((nestedIframe, nestedIdx) => {
-      nestedIframe.contentWindow.postMessage({ action: 'saveState', idx: nestedIdx }, '*');
-    });
-
-    // Listen for state data from nested iframes
-    window.addEventListener('message', (e) => {
-      if (e.origin !== ifr.src) return;
-      if (e.data.action === 'saveState') {
-        saveIframeState(idx, ifr.contentWindow, e.data.state);
-      }
-    });
-  };
-
-  // Check if there's saved state for this iframe
-  const savedState = JSON.parse(localStorage.getItem(`iframeState-${idx}`));
-  if (savedState) {
-    // Restore scroll position
-    ifr.contentWindow.scrollTo(0, savedState.scrollPosition);
-    
-    // Restore form data (if available)
-    const forms = ifr.contentWindow.document.forms;
-    if (forms.length > 0) {
-      Array.from(forms).forEach(form => {
-        form.querySelectorAll('input, textarea, select').forEach(input => {
-          if (savedState.formData[input.name]) {
-            input.value = savedState.formData[input.name];
-          }
-        });
+    function createIframe(tab, idx) {
+      const ifr = document.createElement('iframe');
+      ifr.src = tab.url;
+      ifr.dataset.index = idx;
+      ifr.classList.add('iframe');
+      ifr.classList.toggle('active', idx === activeIndex);
+      iframeContainer.appendChild(ifr);
+      iframeElements[idx] = ifr;
+      ifr.onload = () => {
+        const iframeDocument = ifr.contentDocument || ifr.contentWindow.document;
+        const pageTitle = iframeDocument.title || 'Untitled';
+        tabs[idx].name = pageTitle;
+        urlInput.value = pageTitle;
+        const tabElement = tabsContainer.children[idx];
+        tabElement.querySelector('span').textContent = pageTitle;
+      };
+      ifr.contentWindow.addEventListener('popstate', () => {
+        const iframeDocument = ifr.contentDocument || ifr.contentWindow.document;
+        const pageTitle = iframeDocument.title || 'Untitled';
+        urlInput.value = pageTitle;
       });
+      const savedState = JSON.parse(localStorage.getItem(`iframeState-${idx}`));
+      if (savedState) { ifr.contentWindow.scrollTo(0, savedState.scrollPosition); }
+      ifr.contentWindow.addEventListener('scroll', () => { saveIframeState(idx, ifr.contentWindow); });
+      const forms = ifr.contentWindow.document.forms;
+      Array.from(forms).forEach(form => { form.addEventListener('change', () => { saveIframeState(idx, ifr.contentWindow); }); });
     }
-  }
 
-  // Listen for scroll events
-  ifr.contentWindow.addEventListener('scroll', () => {
-    saveIframeState(idx, ifr.contentWindow);
-  });
-
-  // Listen for form changes
-  const forms = ifr.contentWindow.document.forms;
-  Array.from(forms).forEach(form => {
-    form.addEventListener('change', () => {
-      saveIframeState(idx, ifr.contentWindow);
-    });
-  });
-}
-
-function saveIframeState(idx, iframeWindow, nestedState = {}) {
-  const scrollPosition = iframeWindow.scrollY;
-  const formData = {};
-
-  // Get form data
-  const forms = iframeWindow.document.forms;
-  Array.from(forms).forEach(form => {
-    Array.from(form.querySelectorAll('input, textarea, select')).forEach(input => {
-      if (input.name) {
-        formData[input.name] = input.value;
-      }
-    });
-  });
-
-  // Save to localStorage
-  localStorage.setItem(`iframeState-${idx}`, JSON.stringify({ scrollPosition, formData, nestedState }));
-}
-
-function renderTabs() {
-  tabsContainer.innerHTML = '';
-  tabs.forEach((tab, i) => {
-    const el = document.createElement('div');
-    el.className = 'tab' + (i === activeIndex ? ' selected' : '');
-
-    const favIcon = document.createElement('img');
-    try {
-      const domain = new URL(tab.url).hostname;
-      favIcon.src = `https://www.google.com/s2/favicons?domain=${domain}`;
-    } catch {
-      favIcon.src = 'img/logo.png';
+    function saveIframeState(idx, iframeWindow, nestedState = {}) {
+      const scrollPosition = iframeWindow.scrollY;
+      const formData = {};
+      const forms = iframeWindow.document.forms;
+      Array.from(forms).forEach(form => { Array.from(form.querySelectorAll('input, textarea, select')).forEach(input => { if (input.name) { formData[input.name] = input.value; } }); });
+      localStorage.setItem(`iframeState-${idx}`, JSON.stringify({ scrollPosition, formData, nestedState }));
     }
-    favIcon.className = 'icon';
 
-    const label = document.createElement('span');
-    label.textContent = tab.name;
+    function renderTabs() {
+      tabsContainer.innerHTML = '';
+      tabs.forEach((tab, i) => {
+        const el = document.createElement('div');
+        el.className = 'tab' + (i === activeIndex ? ' selected' : '');
+        const favIcon = document.createElement('img');
+        try {
+          const domain = new URL(tab.url).hostname;
+          favIcon.src = `https://www.google.com/s2/favicons?domain=${domain}`;
+        } catch { favIcon.src = 'img/logo.png'; }
+        favIcon.className = 'icon';
+        const label = document.createElement('span');
+        label.textContent = tab.name;
+        const close = document.createElement('span');
+        close.textContent = '×';
+        close.className = 'close';
+        close.onclick = e => { e.stopPropagation(); iframeElements[i].remove(); tabs.splice(i, 1); iframeElements.splice(i, 1); if (activeIndex >= tabs.length) activeIndex = tabs.length - 1; saveAndRender(); };
+        el.appendChild(favIcon); el.appendChild(label); el.appendChild(close);
+        el.onclick = () => switchToTab(i);
+        tabsContainer.appendChild(el);
+      });
+      const addTab = document.createElement('div');
+      addTab.className = 'add-tab';
+      addTab.textContent = '+';
+      addTab.onclick = () => { const url = 'newtab.html'; tabs.push({ name: 'New Tab', url }); activeIndex = tabs.length - 1; createIframe({ url }, activeIndex); saveAndRender(); };
+      tabsContainer.appendChild(addTab);
+    }
 
-    const close = document.createElement('span');
-    close.textContent = '×';
-    close.className = 'close';
-    close.onclick = e => {
-      e.stopPropagation();
-      iframeElements[i].remove();
-      tabs.splice(i, 1);
-      iframeElements.splice(i, 1);
-      if (activeIndex >= tabs.length) activeIndex = tabs.length - 1;
-      saveAndRender();
-    };
+    function switchToTab(idx) {
+      activeIndex = idx;
+      localStorage.setItem('activeTab', activeIndex);
+      iframeElements.forEach((ifr, i) => { ifr.classList.toggle('active', i === idx); });
+      urlInput.value = tabs[idx].url;
+      renderTabs();
+    }
 
-    el.appendChild(favIcon);
-    el.appendChild(label);
-    el.appendChild(close);
-    el.onclick = () => switchToTab(i);
-    tabsContainer.appendChild(el);
-  });
+    function saveAndRender() {
+      localStorage.setItem('tabs', JSON.stringify(tabs));
+      renderTabs();
+      switchToTab(activeIndex);
+    }
 
-  const addTab = document.createElement('div');
-  addTab.className = 'add-tab';
-  addTab.textContent = '+';
-  addTab.onclick = () => {
-    const url = 'newtab.html';
-    tabs.push({ name: 'New Tab', url });
-    activeIndex = tabs.length - 1;
-    createIframe({ url }, activeIndex);
+    urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') { let url = urlInput.value.trim(); url = formatURL(url); tabs[activeIndex].url = url; tabs[activeIndex].name = url; iframeElements[activeIndex].src = url; saveAndRender(); } });
+
+    backBtn.onclick = () => iframeElements[activeIndex].contentWindow.history.back();
+    forwardBtn.onclick = () => iframeElements[activeIndex].contentWindow.history.forward();
+    reloadBtn.onclick = () => iframeElements[activeIndex].contentWindow.location.reload();
+    moreButton.onclick = () => document.getElementById('dropdownMenu').classList.toggle('show');
+    fullscreenBtn.onclick = () => iframeElements[activeIndex].requestFullscreen?.();
+    installAppBtn.onclick = async () => { if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; } };
+
+    if (!tabs.length) tabs = [{ name: 'New Tab', url: 'newtab.html' }];
+    tabs.forEach((tab, i) => createIframe(tab, i));
     saveAndRender();
-  };
-  tabsContainer.appendChild(addTab);
-}
-
-function switchToTab(idx) {
-  activeIndex = idx;
-  localStorage.setItem('activeTab', activeIndex);
-  iframeElements.forEach((ifr, i) => {
-    ifr.classList.toggle('active', i === idx);
+	
+	window.addEventListener('message', event => {
+    if (event.data.type === 'add-tab') {
+      const { url, name, icon } = event.data;
+      const newTab = {
+        url: url,
+        name: name,
+        icon: icon
+      };
+      tabs.push(newTab);
+      saveAndRender(); // Function to save tabs and update the tab display
+    }
   });
-  urlInput.value = tabs[idx].url;
-  renderTabs();
-}
-
-function saveAndRender() {
-  localStorage.setItem('tabs', JSON.stringify(tabs));
-  renderTabs();
-  switchToTab(activeIndex);
-}
-
-urlInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter') {
-    let url = urlInput.value.trim();
-    url = formatURL(url);
-    tabs[activeIndex].url = url;
-    tabs[activeIndex].name = url;
-    iframeElements[activeIndex].src = url;
-    saveAndRender();
-  }
-});
-
-backBtn.onclick = () => iframeElements[activeIndex].contentWindow.history.back();
-forwardBtn.onclick = () => iframeElements[activeIndex].contentWindow.history.forward();
-reloadBtn.onclick = () => iframeElements[activeIndex].contentWindow.location.reload();
-moreButton.onclick = () => document.getElementById('dropdownMenu').classList.toggle('show');
-fullscreenBtn.onclick = () => iframeElements[activeIndex].requestFullscreen?.();
-installAppBtn.onclick = async () => {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    deferredPrompt = null;
-  }
-};
-
-if (!tabs.length) tabs = [{ name: 'New Tab', url: 'newtab.html' }];
-tabs.forEach((tab, i) => createIframe(tab, i));
-saveAndRender();
-</script>
-
+  </script>
 </body>
 </html>

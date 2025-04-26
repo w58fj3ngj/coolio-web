@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>New Tab</title>
+  <title>coolio://new</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -76,12 +76,15 @@
             const base = new URL(url).origin;
             icon = base + (icon.startsWith('/') ? icon : '/' + icon);
           }
+
+          // Send message to the parent window (index.html)
           window.parent.postMessage({
             type: 'add-tab',
             url: `static/iframe.html#${encodeURIComponent(url)}`,
             name: title,
             icon: icon || `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}`
           }, '*');
+
         } catch (err) {
           console.error('Could not fetch via proxy:', err);
         }
