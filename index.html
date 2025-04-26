@@ -302,6 +302,15 @@
       iframe.msRequestFullscreen();
     }
   });
+  
+  window.addEventListener('message', (event) => {
+  if (event.data.type === 'new-tab') {
+    const { title, favicon, url } = event.data;
+    tabs.push({ name: title, url: url, favicon: favicon });
+    activeIndex = tabs.length - 1;
+    saveAndRender();
+  }
+});
   </script>
 </body>
 </html>
