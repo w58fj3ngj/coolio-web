@@ -6,7 +6,6 @@
   <script src="uv/uv.bundle.js" defer></script>
   <script src="uv/uv.config.js" defer></script>
   <script src="register-sw.js" defer></script>
-  <script src="iframe.js" defer></script>
   <style>
     body, html {
       margin: 0;
@@ -27,7 +26,7 @@
 
   <script>
     const frame = document.getElementById('page-frame');
-    const rawUrl = window.location.hash.substring(1);
+    const rawUrl = decodeURIComponent(window.location.hash.substring(1));
 
     if (!rawUrl) {
       frame.srcdoc = '<h1 style="color: white; text-align: center; margin-top: 20%;">No URL provided.</h1>';
@@ -35,28 +34,34 @@
       frame.src = __uv$config.prefix + __uv$config.encodeUrl(rawUrl);
     }
 
-    frame.addEventListener('load', async () => {
+    frame.addEventListener('load', () => {
       try {
-        const res = await fetch(rawUrl);
-        const html = await res.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const title = doc.querySelector('title')?.innerText || rawUrl;
-        let icon = doc.querySelector("link[rel~='icon']")?.href;
+        const frameDoc = frame.contentDocument || frame.contentWindow.document;
+        const title = frameDoc.querySelector('title')?.innerText || 'No Title';
+        let icon = frameDoc.querySelector("link[rel~='icon']")?.href;
 
-        if (icon && !icon.startsWith('http')) {
+        if (!icon) {
+          icon = 'https://www.google.com/s2/favicons?domain=' + new URL(rawUrl).hostname;
+        } else if (icon.startsWith('/')) {
           const base = new URL(rawUrl).origin;
-          icon = base + (icon.startsWith('/') ? icon : '/' + icon);
+          icon = base + icon;
         }
 
         window.parent.postMessage({
           type: 'update-tab',
-          url: `static/iframe.html#${rawUrl}`,
+          url: `static/iframe.html#${encodeURIComponent(rawUrl)}`,
           name: title,
-          icon: icon || 'https://www.google.com/s2/favicons?domain=' + new URL(rawUrl).hostname
+          icon: icon
         }, '*');
       } catch (err) {
-        console.error('Error updating tab info:', err);
+        console.error('Error accessing iframe content:', err);
+        // Fallback if iframe cannot be accessed due to CSP or sandbox
+        window.parent.postMessage({
+          type: 'update-tab',
+          url: `static/iframe.html#${encodeURIComponent(rawUrl)}`,
+          name: new URL(rawUrl).hostname,
+          icon: 'https://www.google.com/s2/favicons?domain=' + new URL(rawUrl).hostname
+        }, '*');
       }
     });
   </script>
