@@ -95,6 +95,23 @@ function createIframe(tab, idx) {
   iframeContainer.appendChild(ifr);
   iframeElements[idx] = ifr;
 
+  // Listen for messages from nested iframes to save their state
+  ifr.onload = () => {
+    // Check for nested iframes and add message listeners for them
+    const nestedIframes = ifr.contentWindow.document.querySelectorAll('iframe');
+    nestedIframes.forEach((nestedIframe, nestedIdx) => {
+      nestedIframe.contentWindow.postMessage({ action: 'saveState', idx: nestedIdx }, '*');
+    });
+
+    // Listen for state data from nested iframes
+    window.addEventListener('message', (e) => {
+      if (e.origin !== ifr.src) return;
+      if (e.data.action === 'saveState') {
+        saveIframeState(idx, ifr.contentWindow, e.data.state);
+      }
+    });
+  };
+
   // Check if there's saved state for this iframe
   const savedState = JSON.parse(localStorage.getItem(`iframeState-${idx}`));
   if (savedState) {
@@ -128,7 +145,7 @@ function createIframe(tab, idx) {
   });
 }
 
-function saveIframeState(idx, iframeWindow) {
+function saveIframeState(idx, iframeWindow, nestedState = {}) {
   const scrollPosition = iframeWindow.scrollY;
   const formData = {};
 
@@ -143,7 +160,7 @@ function saveIframeState(idx, iframeWindow) {
   });
 
   // Save to localStorage
-  localStorage.setItem(`iframeState-${idx}`, JSON.stringify({ scrollPosition, formData }));
+  localStorage.setItem(`iframeState-${idx}`, JSON.stringify({ scrollPosition, formData, nestedState }));
 }
 
 function renderTabs() {
@@ -239,5 +256,6 @@ if (!tabs.length) tabs = [{ name: 'New Tab', url: 'newtab.html' }];
 tabs.forEach((tab, i) => createIframe(tab, i));
 saveAndRender();
 </script>
+
 </body>
 </html>
