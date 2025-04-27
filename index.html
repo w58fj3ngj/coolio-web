@@ -53,7 +53,7 @@ installAppBtn.onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();defer
 if(!tabs.length){tabs=[{name:'New Tab',url:'newtab.html',icon:'img/logo.png'}]}
 tabs.forEach((tab,i)=>createIframe(tab,i));
 saveAndRender();
-setInterval(updateTabInfo,4000);
+setInterval(updateTabInfo,1000);
 window.addEventListener('message',e=>{const data=e.data;if(typeof data==='string'&&data.startsWith('url:')){const realURL=data.slice(4);tabs[activeIndex].url='static/iframe.html#'+realURL;iframeElements[activeIndex].src='static/iframe.html#'+realURL;updateTabInfo()}})
 </script>
 </body>
