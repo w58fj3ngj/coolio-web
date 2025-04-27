@@ -13,17 +13,18 @@
 <div class="title">Coolio <span>Web</span></div>
 <div class="search-bar-wrapper">
 <form id="newtab-form" style="width:100%">
-<input id="newtab-input" type="text" class="search-bar" placeholder="Search or enter a URL" autocomplete="off">
+<input id="search" type="text" class="search-bar" placeholder="Search or enter a URL" autocomplete="off">
 </form>
 </div>
 </div>
 <script>
-document.getElementById('newtab-form').addEventListener('submit',e=>{
-e.preventDefault();
-let input=document.getElementById('newtab-input').value.trim();
-if(!input)return;
-let url=input.includes('.')||input.includes(':')?'https://'+input:'https://duckduckgo.com/?q='+encodeURIComponent(input);
-window.parent.postMessage({type:'navigate',url:url},'*');
+const input=document.getElementById('search');
+input.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    let val=input.value.trim();
+    if(!val.startsWith('http')){val='https://duckduckgo.com/?q='+encodeURIComponent(val);}
+    window.parent.postMessage('url:'+val,'*');
+  }
 });
 </script>
 </body>
