@@ -76,8 +76,24 @@ function createIframe(tab, idx) {
   iframeElements[idx] = ifr; 
   ifr.onload = () => { 
     updateTabTitle(idx); // Update title when iframe is loaded
+    if (tab.url === 'newtab.html') {
+      urlInput.value = 'coolio://new';  // Set URL bar to coolio://new
+    }
   };
 }
+
+window.addEventListener('message', (e) => {
+  if (e.origin !== window.location.origin) return;  // Make sure the message comes from the same origin
+  if (e.data.startsWith('url:')) {
+    // Extract the URL and update the URL input
+    const newUrl = e.data.substring(4);  // Remove 'url:' part
+    urlInput.value = newUrl;  // Update the URL input
+    tabs[activeIndex].url = newUrl;  // Update the tab URL
+    iframeElements[activeIndex].src = 'static/iframe.html#' + newUrl; // Change iframe URL
+    updateTabInfo(); // Update tab info
+  }
+});
+
 
 function renderTabs() { 
   tabsContainer.innerHTML = ''; 

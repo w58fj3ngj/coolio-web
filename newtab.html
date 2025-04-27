@@ -18,12 +18,14 @@
 </div>
 </div>
 <script>
-const input=document.getElementById('search');
-input.addEventListener('keydown',e=>{
-  if(e.key==='Enter'){
-    let val=input.value.trim();
-    if(!val.startsWith('http')){val='https://duckduckgo.com/?q='+encodeURIComponent(val);}
-    window.parent.postMessage('url:'+val,'*');
+input.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    let val = input.value.trim();
+    if (!val.startsWith('http')) {
+      val = 'https://duckduckgo.com/?q=' + encodeURIComponent(val);
+    }
+    // Send the URL to the parent
+    window.parent.postMessage('url:' + val, '*');
   }
 });
 </script>
