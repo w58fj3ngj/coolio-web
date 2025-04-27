@@ -52,6 +52,13 @@ installAppBtn.onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();defer
 if(!tabs.length){tabs=[{name:'New Tab',url:'newtab.html',icon:'img/logo.png'}]}
 tabs.forEach((tab,i)=>createIframe(tab,i));saveAndRender();
 window.addEventListener('message',event=>{if(event.data.type==='tabInfo'){const{title,icon}=event.data;tabs[activeIndex].name=title||'New Tab';tabs[activeIndex].icon=icon||'img/logo.png';saveAndRender()}});
+window.addEventListener('message',event=>{
+if(event.data.type==='navigate'){
+urlInput.value=event.data.url;
+urlInput.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'}));
+}
+});
+
 </script>
 </body>
 </html>
