@@ -76,9 +76,6 @@ function createIframe(tab, idx) {
   iframeElements[idx] = ifr; 
   ifr.onload = () => { 
     updateTabTitle(idx); // Update title when iframe is loaded
-    if (tab.url === 'newtab.html') {
-      urlInput.value = 'coolio://new';  // Set URL bar to coolio://new
-    }
   };
 }
 
@@ -93,7 +90,6 @@ window.addEventListener('message', (e) => {
     updateTabInfo(); // Update tab info
   }
 });
-
 
 function renderTabs() { 
   tabsContainer.innerHTML = ''; 
