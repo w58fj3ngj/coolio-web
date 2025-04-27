@@ -42,20 +42,20 @@ window.addEventListener('beforeinstallprompt', e => {
   deferredPrompt = e;
 });
 
-const tabsContainer = document.getElementById('tabs');
-const urlInput = document.getElementById('url-input');
-const iframeContainer = document.getElementById('iframeContainer');
-const backBtn = document.getElementById('backBtn');
-const forwardBtn = document.getElementById('forwardBtn');
-const reloadBtn = document.getElementById('reloadBtn');
-const moreButton = document.getElementById('moreButton');
-const newTabBtn = document.getElementById('newTabBtn');
-const fullscreenBtn = document.getElementById('fullscreenBtn');
-const installAppBtn = document.getElementById('installAppBtn');
+const tabsContainer = document.getElementById('tabs'),
+  urlInput = document.getElementById('url-input'),
+  iframeContainer = document.getElementById('iframeContainer'),
+  backBtn = document.getElementById('backBtn'),
+  forwardBtn = document.getElementById('forwardBtn'),
+  reloadBtn = document.getElementById('reloadBtn'),
+  moreButton = document.getElementById('moreButton'),
+  newTabBtn = document.getElementById('newTabBtn'),
+  fullscreenBtn = document.getElementById('fullscreenBtn'),
+  installAppBtn = document.getElementById('installAppBtn');
 
-let tabs = JSON.parse(localStorage.getItem('tabs')) || [];
-let activeIndex = parseInt(localStorage.getItem('activeTab')) || 0;
-let iframeElements = [];
+let tabs = JSON.parse(localStorage.getItem('tabs')) || [],
+  activeIndex = parseInt(localStorage.getItem('activeTab')) || 0,
+  iframeElements = [];
 
 function formatURL(input) {
   if (input.startsWith('http://') || input.startsWith('https://')) return input;
@@ -70,7 +70,6 @@ function updateURLBar(idx) {
   const currentURL = currentIframe.src;
   const newURL = currentURL.includes('#') ? decodeURIComponent(currentURL.split('#')[1]) : decodeURIComponent(currentURL);
 
-  // Only update the URL bar if the value is different
   if (urlInput.value !== newURL) {
     urlInput.value = newURL;
   }
@@ -83,8 +82,8 @@ function updateTabTitle(idx) {
   try {
     const title = currentIframe.contentDocument.title;
     if (title && title !== tabs[idx].name) {
-      tabs[idx].name = title; // Update tab title if it changes
-      renderTabs(); // Only re-render the tabs when the title changes
+      tabs[idx].name = title;
+      renderTabs();
     }
   } catch (e) {
     console.error(e);
@@ -100,7 +99,7 @@ function createIframe(tab, idx) {
   iframeContainer.appendChild(ifr);
   iframeElements[idx] = ifr;
   ifr.onload = () => {
-    updateTabTitle(idx); // Update title when iframe is loaded
+    updateTabTitle(idx);
   };
 }
 
@@ -156,7 +155,7 @@ function switchToTab(idx) {
     ifr.classList.toggle('active', i === idx);
   });
   updateURLBar(idx);
-  updateTabTitle(idx); // Update title when switching tabs
+  updateTabTitle(idx);
   renderTabs();
 }
 
@@ -176,7 +175,7 @@ function updateTabInfo() {
     try {
       const domain = (new URL(realURL)).hostname;
       tabs[i].icon = 'https://www.google.com/s2/favicons?domain=' + domain;
-    } catch { 
+    } catch {
       tabs[i].icon = 'img/logo.png';
     }
   }
@@ -190,7 +189,7 @@ urlInput.addEventListener('keydown', e => {
     url = formatURL(url);
     tabs[activeIndex].url = 'static/iframe.html#' + url;
     iframeElements[activeIndex].src = 'static/iframe.html#' + url;
-    updateTabInfo(); // Update tab info on URL change
+    updateTabInfo();
   }
 });
 
@@ -206,29 +205,33 @@ installAppBtn.onclick = async () => {
   }
 };
 
-// Listen for messages from newtab.html
-window.addEventListener('message', (event) => {
-  if (event.origin !== window.origin) return; // Ensure the message is from the correct source
-
-  const message = event.data;
-  if (message.startsWith('url:')) {
-    let url = message.substring(4); // Get the URL after 'url:'
-    url = formatURL(url); // Format the URL
-
-    // Set the URL to the active tab
-    tabs[activeIndex].url = 'static/iframe.html#' + encodeURIComponent(url);
-    iframeElements[activeIndex].src = 'static/iframe.html#' + encodeURIComponent(url);
-
-    updateTabInfo(); // Update tab info on URL change
-  }
-});
-
 if (!tabs.length) {
   tabs = [{ name: 'New Tab', url: 'newtab.html', icon: 'img/logo.png' }];
 }
 
 tabs.forEach((tab, i) => createIframe(tab, i));
 saveAndRender();
+
+document.addEventListener('DOMContentLoaded', () => {
+  const searchText = localStorage.getItem('searchText');
+  
+  if (searchText) {
+    urlInput.value = searchText;
+
+    if (searchText.startsWith('http')) {
+      tabs[activeIndex].url = 'static/iframe.html#' + searchText;
+      iframeElements[activeIndex].src = 'static/iframe.html#' + searchText;
+      updateTabInfo();
+    } else {
+      urlInput.value = searchText;
+      tabs[activeIndex].url = 'static/iframe.html#https://duckduckgo.com/?q=' + encodeURIComponent(searchText);
+      iframeElements[activeIndex].src = 'static/iframe.html#https://duckduckgo.com/?q=' + encodeURIComponent(searchText);
+      updateTabInfo();
+    }
+    
+    localStorage.removeItem('searchText');
+  }
+});
 </script>
 
 </body>

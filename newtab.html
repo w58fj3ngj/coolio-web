@@ -25,7 +25,12 @@ input.addEventListener('keydown', e => {
     if (!val.startsWith('http')) {
       val = 'https://duckduckgo.com/?q=' + encodeURIComponent(val);
     }
-    window.parent.postMessage('url:' + val, '*');
+
+    // Store the search text in localStorage
+    localStorage.setItem('searchText', val);
+
+    // Redirect to index.html to handle the input
+    window.location.href = 'index.html';
   }
 });
 </script>
