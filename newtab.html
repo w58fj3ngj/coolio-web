@@ -21,30 +21,31 @@
 document.addEventListener('DOMContentLoaded', () => {
   const input = document.getElementById('uv-address');
   const form = document.getElementById('uv-form');
-  const searchEngineElement = document.getElementById('uv-search-engine');
-  const searchEngine = searchEngineElement ? searchEngineElement.value : 'https://duckduckgo.com/?q=%s'; // fallback if not found
 
-  if (!input || !form) return; // prevents crash if missing
+  if (!input || !form) return; // If missing, do nothing
 
   form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    let query = input.value.trim();
-    if (!query) return;
+    e.preventDefault(); // Prevent form from refreshing the page
+    let query = input.value.trim(); // Get the input value
+    if (!query) return; // Do nothing if no input
 
+    // Format the query for URL
     if (query.startsWith('http://') || query.startsWith('https://')) {
-      // Full link provided
+      // Full link, keep it
     } else if (query.includes('.')) {
-      // Looks like a domain, add https://
+      // Domain name (e.g., fart.com), prepend https://
       query = 'https://' + query;
     } else {
-      // Just a search term
-      query = searchEngine.replace('%s', encodeURIComponent(query));
+      // Search term (e.g., "cool"), use DuckDuckGo
+      query = 'https://duckduckgo.com/?q=' + encodeURIComponent(query);
     }
 
-    window.location.href = `https://coolio-web.netlify.app/static/iframe.html#${query}`;
+    // Send the value as a message to index.html using URL hash
+    window.location.href = `index.html#${query}`; // Redirect to index.html with the query
   });
 });
 </script>
+
 
 
 
