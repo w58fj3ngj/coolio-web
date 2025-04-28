@@ -22,15 +22,13 @@ const input = document.getElementById('search');
 
 input.addEventListener('keydown', e => {
   if (e.key === 'Enter') {
+    e.preventDefault();
     let val = input.value.trim();
-    if (!val.startsWith('http')) {
-      val = 'https://duckduckgo.com/?q=' + encodeURIComponent(val);
-    }
-    // Send the URL to the parent
     window.parent.postMessage('url:' + val, '*');
   }
 });
 </script>
+
 
 </body>
 </html>
