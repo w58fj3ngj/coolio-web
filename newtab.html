@@ -21,7 +21,10 @@
 document.addEventListener('DOMContentLoaded', () => {
   const input = document.getElementById('uv-address');
   const form = document.getElementById('uv-form');
-  const searchEngine = document.getElementById('uv-search-engine').value;
+  const searchEngineElement = document.getElementById('uv-search-engine');
+  const searchEngine = searchEngineElement ? searchEngineElement.value : 'https://duckduckgo.com/?q=%s'; // fallback if not found
+
+  if (!input || !form) return; // prevents crash if missing
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -38,11 +41,11 @@ document.addEventListener('DOMContentLoaded', () => {
       query = searchEngine.replace('%s', encodeURIComponent(query));
     }
 
-    // Now redirect to iframe.html#(query)
     window.location.href = `https://coolio-web.netlify.app/static/iframe.html#${query}`;
   });
 });
 </script>
+
 
 
 
