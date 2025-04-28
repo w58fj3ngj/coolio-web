@@ -18,26 +18,32 @@
 </div>
 </div>
 <script>
-const input = document.getElementById('search');
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('uv-address');
+  const form = document.getElementById('uv-form');
+  const searchEngine = document.getElementById('uv-search-engine').value;
 
-input.addEventListener('keydown', e => {
-  if (e.key === 'Enter') {
+  form.addEventListener('submit', (e) => {
     e.preventDefault();
-    let val = input.value.trim();
+    let query = input.value.trim();
+    if (!query) return;
 
-    if (val.startsWith('http://') || val.startsWith('https://')) {
-      // Full link, send as-is
-      window.parent.postMessage('url:' + val, '*');
-    } else if (val.includes('.')) {
-      // Has a dot, so assume it's a website, add https://
-      window.parent.postMessage('url:https://' + val, '*');
+    if (query.startsWith('http://') || query.startsWith('https://')) {
+      // Full link provided
+    } else if (query.includes('.')) {
+      // Looks like a domain, add https://
+      query = 'https://' + query;
     } else {
-      // No dot, just a word, send as-is
-      window.parent.postMessage('url:' + val, '*');
+      // Just a search term
+      query = searchEngine.replace('%s', encodeURIComponent(query));
     }
-  }
+
+    // Now redirect to iframe.html#(query)
+    window.location.href = `https://coolio-web.netlify.app/static/iframe.html#${query}`;
+  });
 });
 </script>
+
 
 
 
