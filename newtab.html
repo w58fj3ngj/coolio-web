@@ -24,10 +24,21 @@ input.addEventListener('keydown', e => {
   if (e.key === 'Enter') {
     e.preventDefault();
     let val = input.value.trim();
-    window.parent.postMessage('url:' + val, '*');
+
+    if (val.startsWith('http://') || val.startsWith('https://')) {
+      // Full link, send as-is
+      window.parent.postMessage('url:' + val, '*');
+    } else if (val.includes('.')) {
+      // Has a dot, so assume it's a website, add https://
+      window.parent.postMessage('url:https://' + val, '*');
+    } else {
+      // No dot, just a word, send as-is
+      window.parent.postMessage('url:' + val, '*');
+    }
   }
 });
 </script>
+
 
 
 </body>
