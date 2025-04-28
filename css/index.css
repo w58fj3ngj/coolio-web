@@ -181,6 +181,23 @@ iframe.active {
   display: block;
 }
 
+iframe::-webkit-scrollbar {
+  width: 4px;
+}
+
+iframe::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+iframe::-webkit-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 3px;
+}
+
+iframe.active {
+  display: block;
+}
+
 .icon,
 .dropdown-icon,
 .navb-icon {
