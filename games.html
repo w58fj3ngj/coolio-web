@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Game Collection</title>
+  <link rel="stylesheet" href="css/games.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="search-container">
+    <input type="text" id="searchBar" class="search-bar" placeholder="Search games...">
+  </div>
+
+  <div class="cards-container" id="gamesContainer">
+  </div>
+
+  <!-- Loading Screen -->
+  <div id="loadingScreen" class="loading-screen">
+    <div class="loader"></div>
+  </div>
+
+  <script src="games-data.js"></script>
+  <script>
+    const gamesContainer = document.getElementById('gamesContainer');
+    const searchBar = document.getElementById('searchBar');
+    const loadingScreen = document.getElementById('loadingScreen');
+    const body = document.body;
+
+    function renderGames(filteredGames) {
+      gamesContainer.innerHTML = '';
+      filteredGames.forEach(game => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        
+        card.innerHTML = `
+          <img src="${game.image}" alt="${game.name}">
+          <div class="card-content">
+            <h3>${game.name}</h3>
+            <a href="javascript:void(0);" class="play-button" data-url="${game.url}">
+              <span class="play-icon"></span> Play
+            </a>
+          </div>
+        `;
+        
+        gamesContainer.appendChild(card);
+      });
+    }
+
+    searchBar.addEventListener('input', function() {
+      const query = searchBar.value.toLowerCase();
+      const filteredGames = games.filter(game => game.name.toLowerCase().includes(query));
+      renderGames(filteredGames);
+    });
+
+    renderGames(games);
+
+    // Handle card clicks
+    document.getElementById('gamesContainer').addEventListener('click', function(event) {
+      if (event.target.closest('.play-button')) {
+        const gameUrl = event.target.closest('.play-button').getAttribute('data-url');
+
+        // Show loading screen
+        loadingScreen.classList.add('show');
+        body.classList.add('fade');
+
+        // Create the iframe dynamically
+        const iframe = document.createElement('iframe');
+        iframe.src = gameUrl;
+        iframe.style.opacity = "0"; // Initially hidden
+        iframe.style.transition = "opacity 2s ease"; // Smooth fade-in transition
+        document.body.appendChild(iframe);
+
+        // Wait for 2 seconds before starting the iframe loading animation
+        setTimeout(() => {
+          iframe.style.opacity = "1"; // Fade in iframe after 2 seconds
+        }, 2000);
+
+        // Remove the loading screen and fade effect after the iframe is loaded
+        iframe.onload = () => {
+          setTimeout(() => {
+            loadingScreen.classList.remove('show');
+            body.classList.remove('fade');
+          }, 3000); // Wait for a moment before removing the fade effect
+        };
+      }
+    });
+  </script>
+
+</body>
+</html>
