@@ -32,36 +32,29 @@
 <div class="iframe-container" id="iframeContainer"></div>
 </div>
 <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js');
-  }
-
-  let deferredPrompt;
-  window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault();
-    deferredPrompt = e;
-  });
-
-  const tabsContainer = document.getElementById('tabs');
-  const urlInput = document.getElementById('url-input');
-  const iframeContainer = document.getElementById('iframeContainer');
-  const backBtn = document.getElementById('backBtn');
-  const forwardBtn = document.getElementById('forwardBtn');
-  const reloadBtn = document.getElementById('reloadBtn');
-  const moreButton = document.getElementById('moreButton');
-  const newTabBtn = document.getElementById('newTabBtn');
-  const fullscreenBtn = document.getElementById('fullscreenBtn');
-  const installAppBtn = document.getElementById('installAppBtn');
-
-  let tabs = JSON.parse(localStorage.getItem('tabs')) || [],
-    activeIndex = parseInt(localStorage.getItem('activeTab')) || 0,
-    iframeElements = [];
-
   function formatURL(input) {
     if (input.startsWith('http://') || input.startsWith('https://')) return input;
     if (input.includes('.') || input.includes(':')) return 'https://' + input;
     return 'https://duckduckgo.com/?q=' + encodeURIComponent(input);
   }
+
+  window.addEventListener('message', function(e) {
+    if (e.origin !== window.location.origin) return;
+
+    if (e.data.type === 'search') {
+      const searchQuery = e.data.query;
+      document.getElementById('url-input').value = searchQuery;
+
+      let formattedUrl = formatURL(searchQuery);
+      tabs[activeIndex].url = 'static/iframe.html#' + formattedUrl;
+      iframeElements[activeIndex].src = 'static/iframe.html#' + formattedUrl;
+      updateTabInfo();
+    }
+  });
+
+  let tabs = JSON.parse(localStorage.getItem('tabs')) || [],
+      activeIndex = parseInt(localStorage.getItem('activeTab')) || 0,
+      iframeElements = [];
 
   function updateURLBar(idx) {
     const currentIframe = iframeElements[idx];
@@ -102,17 +95,6 @@
       updateTabTitle(idx);
     };
   }
-
-  window.addEventListener('message', (e) => {
-    if (e.origin !== window.location.origin) return;
-    if (e.data.startsWith('url:')) {
-      const newUrl = e.data.substring(4);
-      urlInput.value = newUrl;
-      tabs[activeIndex].url = newUrl;
-      iframeElements[activeIndex].src = 'static/iframe.html#' + newUrl;
-      updateTabInfo();
-    }
-  });
 
   function renderTabs() {
     tabsContainer.innerHTML = '';
@@ -224,6 +206,7 @@
   tabs.forEach((tab, i) => createIframe(tab, i));
   saveAndRender();
 </script>
+
 
 
 </body>
