@@ -18,32 +18,17 @@
 </div>
 </div>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const input = document.getElementById('uv-address');
-  const form = document.getElementById('uv-form');
+  window.addEventListener('message', (e) => {
+    if (e.origin !== window.location.origin) return;
 
-  if (!input || !form) return; // If missing, do nothing
-
-  form.addEventListener('submit', (e) => {
-    e.preventDefault(); // Prevent form from refreshing the page
-    let query = input.value.trim(); // Get the input value
-    if (!query) return; // Do nothing if no input
-
-    // Format the query for URL
-    if (query.startsWith('http://') || query.startsWith('https://')) {
-      // Full link, keep it
-    } else if (query.includes('.')) {
-      // Domain name (e.g., fart.com), prepend https://
-      query = 'https://' + query;
-    } else {
-      // Search term (e.g., "cool"), use DuckDuckGo
-      query = 'https://duckduckgo.com/?q=' + encodeURIComponent(query);
+    if (e.data.startsWith('url:')) {
+      const newUrl = e.data.substring(4); // Extract URL
+      urlInput.value = newUrl;
+      tabs[activeIndex].url = newUrl; // Update the active tab's URL
+      iframeElements[activeIndex].src = 'static/iframe.html#' + newUrl; // Set the iframe to the new URL
+      updateTabInfo(); // Update tab info
     }
-
-    // Send the value as a message to index.html using URL hash
-    window.location.href = `index.html#${query}`; // Redirect to index.html with the query
   });
-});
 </script>
 
 
