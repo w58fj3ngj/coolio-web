@@ -76,7 +76,17 @@
 
 <div class="iframe-container" id="iframeContainer"></div>
 
+<script>
+const currentURL = window.location.href;
 
+if (currentURL.includes('newtab.html')) {
+  urlInput.value = 'coolio://new';
+} else if (currentURL.includes('games.html')) {
+  urlInput.value = 'coolio://games';
+} else {
+  urlInput.value = currentURL;
+}
+</script>
 <script>
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
 
@@ -332,18 +342,6 @@ window.addEventListener('beforeinstallprompt', e => {
 
 tabs.forEach(createIframe);
 saveAndRender();
-</script>
-
-<script>
-const currentURL = window.location.href;
-
-if (currentURL.includes('newtab.html')) {
-  urlInput.value = 'coolio://new';
-} else if (currentURL.includes('games.html')) {
-  urlInput.value = 'coolio://games';
-} else {
-  urlInput.value = currentURL;
-}
 </script>
 
 
