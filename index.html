@@ -104,48 +104,46 @@ function createIframe(tab, idx) {
   iframe.classList.toggle('active', idx === activeIndex);
 
 iframe.onload = () => {
-  const thisIdx = idx;
+  const thisIdx = idx; // lock the index NOW
   const thisTab = tabs[thisIdx];
 
   try {
     if (!thisTab) return;
 
-    const checkAndUpdateTabInfo = () => {
-      try {
-        const url = decodeURIComponent(thisTab.url.split('#')[1] || thisTab.url);
-        const domain = (new URL(url)).hostname;
-        thisTab.icon = `https://www.google.com/s2/favicons?domain=${domain}`;
-        saveAndRender();
+    if (thisTab.url.startsWith('coolio://')) {
+      thisTab.name = 'New Tab';
+      thisTab.icon = 'img/logo64x.png';
+      saveAndRender();
+    } else {
+      const url = decodeURIComponent(thisTab.url.split('#')[1] || thisTab.url);
+      const domain = (new URL(url)).hostname;
+      thisTab.icon = `https://www.google.com/s2/favicons?domain=${domain}`;
+      saveAndRender();
 
-        const title = iframe.contentDocument?.title;
-        if (title) {
-          thisTab.name = title;
-          saveAndRender();
-        } else {
-          setTimeout(checkAndUpdateTabInfo, 500);
+      const checkTitle = () => {
+        try {
+          const title = iframe.contentDocument?.title;
+          if (title) {
+            thisTab.name = title;
+            saveAndRender();
+          } else {
+            setTimeout(checkTitle, 500);
+          }
+        } catch (e) {
+          console.error('Error reading iframe title:', e);
+          setTimeout(checkTitle, 500);
         }
-      } catch (e) {
-        console.error('Error updating tab info:', e);
-      }
-    };
-    checkAndUpdateTabInfo();
-    const observer = new MutationObserver(() => {
-      const currentURL = iframe.contentWindow.location.href;
-      if (currentURL !== thisTab.url) {
-        thisTab.url = currentURL;
-        checkAndUpdateTabInfo();
-      }
-    });
-    observer.observe(iframe.contentWindow.document, {
-      subtree: true,
-      childList: true
-    });
-    iframe.onunload = () => observer.disconnect();
+      };
 
+      setTimeout(checkTitle, 1500);
+    }
   } catch (e) {
-    console.error('Error setting up iframe onload:', e);
+    console.error('Error updating tab info:', e);
   }
 };
+
+
+
   iframeContainer.appendChild(iframe);
   iframeElements[idx] = iframe;
 }
