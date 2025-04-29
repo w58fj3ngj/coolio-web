@@ -77,16 +77,21 @@
 <div class="iframe-container" id="iframeContainer"></div>
 
 <script>
-const urlInput = document.getElementById('url-input');
-const currentURL = window.location.href;
+  // Wait until the DOM content is fully loaded
+  document.addEventListener('DOMContentLoaded', function() {
+    // Get the URL input element
+    const urlInput = document.getElementById('url-input');
+    
+    // Check the current page URL
+    const currentURL = window.location.href;
 
-if (currentURL.includes('newtab.html')) {
-  urlInput.value = 'coolio://new';
-} else if (currentURL.includes('games.html')) {
-  urlInput.value = 'coolio://games';
-} else {
-  urlInput.value = currentURL;
-}
+    // Change the text inside the url-input based on the current page URL
+    if (currentURL.includes('newtab.html')) {
+      urlInput.value = 'coolio://new'; // Set to "coolio://new" for newtab.html
+    } else if (currentURL.includes('games.html')) {
+      urlInput.value = 'coolio://games'; // Set to "coolio://games" for games.html
+    }
+  });
 </script>
 <script>
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
