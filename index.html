@@ -228,7 +228,6 @@ function updateTabTitle(idx) {
       saveAndRender();
     }
   } catch {
-    // Do nothing (likely cross-origin iframe)
   }
 }
 
@@ -244,7 +243,6 @@ function updateTabIcons() {
   saveAndRender();
 }
 
-// Handle URL bar "Enter"
 urlInput.addEventListener('keydown', e => {
   if (e.key === 'Enter') {
     const formatted = formatURL(urlInput.value.trim());
@@ -254,7 +252,6 @@ urlInput.addEventListener('keydown', e => {
   }
 });
 
-// Navigation buttons
 $('backBtn').onclick = () => {
   try {
     iframeElements[activeIndex].contentWindow.history.back();
@@ -273,7 +270,6 @@ $('reloadBtn').onclick = () => {
   } catch {}
 };
 
-// Dropdown handling
 const moreButton = $('moreButton');
 const dropdownMenu = $('dropdownMenu');
 
@@ -287,16 +283,15 @@ window.onclick = (e) => {
   }
 };
 
-// Fullscreen
 $('fullscreenBtn').onclick = () => {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen();
-  } else {
+  const iframe = iframeElements[activeIndex];
+  if (iframe && !document.fullscreenElement) {
+    iframe.requestFullscreen();
+  } else if (document.fullscreenElement) {
     document.exitFullscreen();
   }
 };
 
-// Install App
 $('installAppBtn').onclick = () => {
   if (deferredPrompt) {
     deferredPrompt.prompt();
@@ -306,7 +301,6 @@ $('installAppBtn').onclick = () => {
   }
 };
 
-// New Tab Button
 $('newTabBtn').onclick = () => {
   tabs.push({ name: 'New Tab', url: 'coolio://new', icon: 'img/logo.png' });
   activeIndex = tabs.length - 1;
@@ -314,7 +308,6 @@ $('newTabBtn').onclick = () => {
   saveAndRender();
 };
 
-// Games Button
 $('gamesBtn').onclick = () => {
   tabs.push({ name: 'Games', url: 'games.html', icon: 'img/logo.png' });
   activeIndex = tabs.length - 1;
@@ -322,7 +315,6 @@ $('gamesBtn').onclick = () => {
   saveAndRender();
 };
 
-// Handle app install event
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   deferredPrompt = e;
