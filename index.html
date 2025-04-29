@@ -122,7 +122,7 @@ iframe.onload = () => {
           thisTab.name = title;
           saveAndRender();
         } else {
-          // Retry after a short delay if the title is not available yet
+          // Retry if no title yet
           setTimeout(checkAndUpdateTabInfo, 500);
         }
       } catch (e) {
@@ -130,26 +130,27 @@ iframe.onload = () => {
       }
     };
 
-    // Initial URL check and update
+    // Initial check
     checkAndUpdateTabInfo();
 
-    // Set up a mutation observer to detect URL changes within the iframe
-    const observer = new MutationObserver(() => {
+    let lastURL = iframe.contentWindow.location.href;
+
+    // Monitor URL changes inside iframe
+    setInterval(() => {
       const currentURL = iframe.contentWindow.location.href;
-      if (currentURL !== thisTab.url) {
-        thisTab.url = currentURL; // Update the tab's URL
-        checkAndUpdateTabInfo(); // Update tab info when the URL changes
+      if (currentURL !== lastURL) {
+        lastURL = currentURL;
+
+        thisTab.url = currentURL;
+        checkAndUpdateTabInfo();
+
+        // Update the URL bar (assuming you have a URL input element)
+        const urlInput = document.getElementById('urlInput');
+        if (urlInput) {
+          urlInput.value = currentURL;
+        }
       }
-    });
-
-    // Start observing the iframe's location for changes (listen for history changes)
-    observer.observe(iframe.contentWindow.document, {
-      subtree: true,
-      childList: true
-    });
-
-    // Optional: Disconnect observer when the iframe is no longer in use to prevent memory leaks
-    iframe.onunload = () => observer.disconnect();
+    }, 500); // Check every 0.5 seconds
 
   } catch (e) {
     console.error('Error setting up iframe onload:', e);
