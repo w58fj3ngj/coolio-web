@@ -112,7 +112,7 @@ iframe.onload = () => {
 
     if (thisTab.url.startsWith('coolio://')) {
       thisTab.name = 'New Tab';
-      thisTab.icon = 'coolicon.png';
+      thisTab.icon = 'img/logo.png';
       saveAndRender();
     } else {
       const url = decodeURIComponent(thisTab.url.split('#')[1] || thisTab.url);
