@@ -335,16 +335,18 @@ saveAndRender();
 </script>
 
 <script>
-const topBar = document.getElementById('topBar');
-const url = window.location.href;
-if (url.includes('/newtab.html')) {
-  topBar.textContent = 'coolio://new';
-} else if (url.includes('/games.html')) {
-  topBar.textContent = 'coolio://games';
+const urlInput = document.getElementById('url-input');
+const currentURL = window.location.href;
+
+if (currentURL.includes('newtab.html')) {
+  urlInput.value = 'coolio://new';
+} else if (currentURL.includes('games.html')) {
+  urlInput.value = 'coolio://games';
 } else {
-  topBar.textContent = url;
+  urlInput.value = currentURL;
 }
 </script>
+
 
 </body>
 </html>
