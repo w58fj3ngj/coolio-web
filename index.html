@@ -93,13 +93,37 @@ function formatURL(input) {
 
 function createIframe(tab, idx) {
   const iframe = document.createElement('iframe');
-  iframe.src = (tab.url === 'coolio://new') ? 'newtab.html' : tab.url;
+  
+  if (tab.url === 'coolio://new') {
+    iframe.src = 'newtab.html';
+  } else {
+    iframe.src = tab.url;
+  }
+
   iframe.dataset.index = idx;
   iframe.classList.toggle('active', idx === activeIndex);
-  iframe.onload = () => updateTabTitle(idx);
+
+  iframe.onload = () => {
+    try {
+      const title = iframe.contentDocument.title;
+      if (title) {
+        tabs[idx].name = title;
+      }
+
+      const url = decodeURIComponent(tab.url.split('#')[1] || tab.url);
+      const domain = (new URL(url)).hostname;
+      tabs[idx].icon = `https://www.google.com/s2/favicons?domain=${domain}`;
+
+      saveAndRender();
+    } catch (e) {
+      console.error('Error updating tab info:', e);
+    }
+  };
+
   iframeContainer.appendChild(iframe);
   iframeElements[idx] = iframe;
 }
+
 
 function renderTabs() {
   tabsContainer.innerHTML = '';
