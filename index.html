@@ -334,6 +334,17 @@ tabs.forEach(createIframe);
 saveAndRender();
 </script>
 
+<script>
+const topBar = document.getElementById('topBar');
+const url = window.location.href;
+if (url.includes('/newtab.html')) {
+  topBar.textContent = 'coolio://new';
+} else if (url.includes('/games.html')) {
+  topBar.textContent = 'coolio://games';
+} else {
+  topBar.textContent = url;
+}
+</script>
 
 </body>
 </html>
