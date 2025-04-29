@@ -104,11 +104,11 @@ function createIframe(tab, idx) {
   iframe.classList.toggle('active', idx === activeIndex);
 
 iframe.onload = () => {
-  const thisIdx = idx; // lock the index NOW
-  const thisTab = tabs[thisIdx]; // lock the tab NOW
+  const thisIdx = idx;
+  const thisTab = tabs[thisIdx];
 
   try {
-    if (!thisTab) return; // double check tab exists
+    if (!thisTab) return;
 
     const checkAndUpdateTabInfo = () => {
       try {
@@ -122,44 +122,30 @@ iframe.onload = () => {
           thisTab.name = title;
           saveAndRender();
         } else {
-          // Retry if no title yet
           setTimeout(checkAndUpdateTabInfo, 500);
         }
       } catch (e) {
         console.error('Error updating tab info:', e);
       }
     };
-
-    // Initial check
     checkAndUpdateTabInfo();
-
-    let lastURL = iframe.contentWindow.location.href;
-
-    // Monitor URL changes inside iframe
-    setInterval(() => {
+    const observer = new MutationObserver(() => {
       const currentURL = iframe.contentWindow.location.href;
-      if (currentURL !== lastURL) {
-        lastURL = currentURL;
-
+      if (currentURL !== thisTab.url) {
         thisTab.url = currentURL;
         checkAndUpdateTabInfo();
-
-        // Update the URL bar (assuming you have a URL input element)
-        const urlInput = document.getElementById('url-input');
-        if (urlInput) {
-          urlInput.value = currentURL;
-        }
       }
-    }, 500); // Check every 0.5 seconds
+    });
+    observer.observe(iframe.contentWindow.document, {
+      subtree: true,
+      childList: true
+    });
+    iframe.onunload = () => observer.disconnect();
 
   } catch (e) {
     console.error('Error setting up iframe onload:', e);
   }
 };
-
-
-
-
   iframeContainer.appendChild(iframe);
   iframeElements[idx] = iframe;
 }
