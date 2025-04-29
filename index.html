@@ -104,15 +104,15 @@ function createIframe(tab, idx) {
   iframe.classList.toggle('active', idx === activeIndex);
 
 iframe.onload = () => {
-  const thisIdx = idx; // lock the index NOW
-  const thisTab = tabs[thisIdx]; // lock the tab NOW
-  
+  const thisIdx = idx;
+  const thisTab = tabs[thisIdx];
+
   try {
     if (!thisTab) return;
 
     if (thisTab.url.startsWith('coolio://')) {
       thisTab.name = 'New Tab';
-      thisTab.icon = 'img/logo.png';
+      thisTab.icon = 'coolicon.png';
       saveAndRender();
     } else {
       const url = decodeURIComponent(thisTab.url.split('#')[1] || thisTab.url);
@@ -120,24 +120,28 @@ iframe.onload = () => {
       thisTab.icon = `https://www.google.com/s2/favicons?domain=${domain}`;
       saveAndRender();
 
-      setTimeout(() => {
+      const checkTitle = () => {
         try {
           const title = iframe.contentDocument?.title;
           if (title) {
             thisTab.name = title;
+            saveAndRender();
           } else {
-            thisTab.name = domain;
+            setTimeout(checkTitle, 500);
           }
-          saveAndRender();
         } catch (e) {
           console.error('Error reading iframe title:', e);
+          setTimeout(checkTitle, 500);
         }
-      }, 1500);
+      };
+
+      setTimeout(checkTitle, 1500);
     }
   } catch (e) {
     console.error('Error updating tab info:', e);
   }
 };
+
 
 
   iframeContainer.appendChild(iframe);
