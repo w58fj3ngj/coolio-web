@@ -87,19 +87,13 @@ const $ = id => document.getElementById(id);
 const tabsContainer = $('tabs'), urlInput = $('url-input'), iframeContainer = $('iframeContainer');
 
 function formatURL(input) {
-  if (input.startsWith('coolio://')) {
-    return input;
-  }
+  if (input.startsWith('coolio://')) return input;
   return input.startsWith('http') ? input : (input.includes('.') ? 'https://' + input : 'https://duckduckgo.com/?q=' + encodeURIComponent(input));
 }
 
 function createIframe(tab, idx) {
   const iframe = document.createElement('iframe');
-  if (tab.url === 'coolio://new') {
-    iframe.src = 'newtab.html';
-  } else {
-    iframe.src = tab.url;
-  }
+  iframe.src = (tab.url === 'coolio://new') ? 'newtab.html' : tab.url;
   iframe.dataset.index = idx;
   iframe.classList.toggle('active', idx === activeIndex);
   iframe.onload = () => updateTabTitle(idx);
@@ -123,19 +117,14 @@ function renderTabs() {
     } else {
       try {
         let realURL = decodeURIComponent(tab.url.split('#')[1] || tab.url);
-        const domain = (new URL(realURL)).hostname.replace('www.', '');
-        label.textContent = domain;
+        label.textContent = (new URL(realURL)).hostname.replace('www.', '');
       } catch {
         label.textContent = 'New Tab';
       }
     }
 
     const close = document.createElement('span');
-    close.innerHTML = `
-      <svg class="navb-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    `;
+    close.innerHTML = `<svg class="navb-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
     close.className = 'close';
     close.onclick = e => {
       e.stopPropagation();
@@ -155,11 +144,7 @@ function renderTabs() {
 
   const addTab = document.createElement('div');
   addTab.className = 'add-tab';
-  addTab.innerHTML = `
-    <svg class="navb-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  `;
+  addTab.innerHTML = `<svg class="navb-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   addTab.onclick = () => {
     const url = 'coolio://new';
     tabs.push({ name: 'New Tab', url, icon: 'img/logo.png' });
@@ -174,7 +159,13 @@ function switchToTab(idx) {
   activeIndex = idx;
   localStorage.setItem('activeTab', activeIndex);
   iframeElements.forEach((ifr, i) => ifr.classList.toggle('active', i === idx));
-  urlInput.value = decodeURIComponent((iframeElements[idx]?.src.split('#')[1]) || iframeElements[idx]?.src);
+  if (iframeElements[idx]) {
+    try {
+      urlInput.value = decodeURIComponent(iframeElements[idx].src.split('#')[1] || iframeElements[idx].src);
+    } catch {
+      urlInput.value = iframeElements[idx].src;
+    }
+  }
   updateTabTitle(idx);
   renderTabs();
 }
@@ -192,7 +183,9 @@ function updateTabTitle(idx) {
       tabs[idx].name = title;
       saveAndRender();
     }
-  } catch {}
+  } catch {
+    // Do nothing (likely cross-origin iframe)
+  }
 }
 
 function updateTabIcons() {
@@ -207,41 +200,94 @@ function updateTabIcons() {
   saveAndRender();
 }
 
+// Handle URL bar "Enter"
 urlInput.addEventListener('keydown', e => {
   if (e.key === 'Enter') {
-    tabs[activeIndex].url = 'static/iframe.html#' + formatURL(urlInput.value.trim());
+    const formatted = formatURL(urlInput.value.trim());
+    tabs[activeIndex].url = 'static/iframe.html#' + formatted;
     iframeElements[activeIndex].src = tabs[activeIndex].url;
     updateTabIcons();
   }
 });
 
-$('backBtn').onclick = () => iframeElements[activeIndex].contentWindow.history.back();
-$('forwardBtn').onclick = () => iframeElements[activeIndex].contentWindow.history.forward();
-$('reloadBtn').onclick = () => iframeElements[activeIndex].contentWindow.location.reload();
-$('moreButton').onclick = () => $('dropdownMenu').classList.toggle('show');
-$('fullscreenBtn').onclick = () => iframeElements[activeIndex]?.requestFullscreen?.();
-$('installAppBtn').onclick = async () => {
-  if (deferredPrompt) deferredPrompt.prompt(), deferredPrompt = null;
+// Navigation buttons
+$('backBtn').onclick = () => {
+  try {
+    iframeElements[activeIndex].contentWindow.history.back();
+  } catch {}
 };
 
+$('forwardBtn').onclick = () => {
+  try {
+    iframeElements[activeIndex].contentWindow.history.forward();
+  } catch {}
+};
+
+$('reloadBtn').onclick = () => {
+  try {
+    iframeElements[activeIndex].contentWindow.location.reload();
+  } catch {}
+};
+
+// Dropdown handling
+const moreButton = $('moreButton');
+const dropdownMenu = $('dropdownMenu');
+
+moreButton.onclick = () => {
+  dropdownMenu.classList.toggle('show');
+};
+
+window.onclick = (e) => {
+  if (!e.target.closest('.more-button') && !e.target.closest('.dropdown')) {
+    dropdownMenu.classList.remove('show');
+  }
+};
+
+// Fullscreen
+$('fullscreenBtn').onclick = () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+};
+
+// Install App
+$('installAppBtn').onclick = () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(choiceResult => {
+      deferredPrompt = null;
+    });
+  }
+};
+
+// New Tab Button
+$('newTabBtn').onclick = () => {
+  tabs.push({ name: 'New Tab', url: 'coolio://new', icon: 'img/logo.png' });
+  activeIndex = tabs.length - 1;
+  createIframe({ url: 'coolio://new' }, activeIndex);
+  saveAndRender();
+};
+
+// Games Button
+$('gamesBtn').onclick = () => {
+  tabs.push({ name: 'Games', url: 'games.html', icon: 'img/logo.png' });
+  activeIndex = tabs.length - 1;
+  createIframe({ url: 'games.html' }, activeIndex);
+  saveAndRender();
+};
+
+// Handle app install event
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   deferredPrompt = e;
 });
 
-window.addEventListener('message', e => {
-  if (e.origin === location.origin && e.data.startsWith('url:')) {
-    const newUrl = e.data.slice(4);
-    urlInput.value = newUrl;
-    tabs[activeIndex].url = 'static/iframe.html#' + newUrl;
-    iframeElements[activeIndex].src = tabs[activeIndex].url;
-    updateTabIcons();
-  }
-});
-
 tabs.forEach(createIframe);
 saveAndRender();
 </script>
+
 
 </body>
 </html>
