@@ -23,7 +23,13 @@
     <button class="nav-button" id="reloadBtn"><svg class="navb-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
  <path d="M22 10C22 10 19.995 7.26822 18.3662 5.63824C16.7373 4.00827 14.4864 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21C16.1031 21 19.5649 18.2543 20.6482 14.5M22 10V4M22 10H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
  </svg></button>
+ 
+ 
+ 
     <input id="url-input" class="url-bar" placeholder="Search or enter a URL.">
+	
+	
+	
     <button class="more-button" id="moreButton"><svg class="navb-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
  <path d="M12 13C12.5523 13 13 12.5523 13 12C13 11.4477 12.5523 11 12 11C11.4477 11 11 11.4477 11 12C11 12.5523 11.4477 13 12 13Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
  <path d="M12 6C12.5523 6 13 5.55228 13 5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5C11 5.55228 11.4477 6 12 6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -322,6 +328,10 @@ window.addEventListener('beforeinstallprompt', e => {
 
 tabs.forEach(createIframe);
 saveAndRender();
+
+document.getElementById('url-input').addEventListener('focus', function() {
+  this.select();
+});
 </script>
 
 
