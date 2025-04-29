@@ -105,25 +105,33 @@ function createIframe(tab, idx) {
 
 iframe.onload = () => {
   try {
-    const title = iframe.contentDocument.title;
-    if (title) {
-      tabs[idx].name = title;
-    }
-
     if (tab.url.startsWith('coolio://')) {
+      tabs[idx].name = 'New Tab';
       tabs[idx].icon = 'img/logo.png';
     } else {
       const url = decodeURIComponent(tab.url.split('#')[1] || tab.url);
       const domain = (new URL(url)).hostname;
       tabs[idx].icon = `https://www.google.com/s2/favicons?domain=${domain}`;
-    }
 
+      setTimeout(() => {
+        try {
+          const title = iframe.contentDocument.title;
+          if (title) {
+            tabs[idx].name = title;
+          } else {
+            tabs[idx].name = domain;
+          }
+          saveAndRender();
+        } catch (e) {
+          console.error('Error reading iframe title:', e);
+        }
+      }, 100);
+    }
     saveAndRender();
   } catch (e) {
     console.error('Error updating tab info:', e);
   }
 };
-
 
   iframeContainer.appendChild(iframe);
   iframeElements[idx] = iframe;
