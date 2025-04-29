@@ -111,8 +111,7 @@ iframe.onload = () => {
     }
 
     if (tab.url.startsWith('coolio://')) {
-      // It's a special page, set default icon
-      tabs[idx].icon = 'coolicon.png'; // <-- your default image here
+      tabs[idx].icon = 'img/logo.png';
     } else {
       const url = decodeURIComponent(tab.url.split('#')[1] || tab.url);
       const domain = (new URL(url)).hostname;
