@@ -308,6 +308,23 @@ saveAndRender();
 $('url-input').addEventListener('focus', function() {
   this.select();
 });
+
+window.addEventListener('message', e => {
+  if (e.origin !== window.location.origin) return;
+  const msg = e.data;
+  if (typeof msg === 'string' && msg.startsWith('url:')) {
+    const raw = msg.slice(4);
+    // reuse your Enter‐key logic:
+    const formatted = formatURL(raw);
+    const iframeUrl = 'static/iframe.html#' + formatted;
+    // update active tab
+    tabs[activeIndex].url = iframeUrl;
+    iframeElements[activeIndex].src = iframeUrl;
+    urlInput.value = raw;           // show exactly what user typed
+    updateTabIcons();               // refresh favicon
+    saveAndRender();                // redraw tabs + persist
+  }
+});
 </script>
 
 

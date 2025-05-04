@@ -1,40 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>New Tab</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',sans-serif;background:linear-gradient(to bottom right,#f9f9f9,#ebf6ff);color:#333;height:100vh;display:flex;align-items:center;justify-content:center}.container{text-align:center;padding:40px;width:90%;max-width:600px;margin-bottom:90px}.title{font-size:50px;font-weight:bold;margin-bottom:30px}.title span{color:#007bff}.search-bar-wrapper{margin-top:20px;display:flex;justify-content:center}.search-bar{padding:15px 25px;width:100%;font-size:18px;border:2px solid #ccc;border-radius:50px;box-shadow:0 4px 10px rgba(0,0,0,0.1);transition:.3s}.search-bar:focus{outline:none;border-color:#007bff;background:#f0f8ff;box-shadow:0 6px 12px rgba(0,123,255,0.2)}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Tab</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0 }
+    body { font-family: 'Segoe UI',sans-serif; background: linear-gradient(to bottom right,#f9f9f9,#ebf6ff); color: #333; height: 100vh; display: flex; align-items: center; justify-content: center }
+    .container { text-align: center; padding: 40px; width: 90%; max-width: 600px; }
+    .title { font-size: 50px; font-weight: bold; margin-bottom: 30px }
+    .title span { color: #007bff }
+    .search-bar-wrapper { margin-top: 20px; display: flex; justify-content: center }
+    .search-bar {
+      padding: 15px 25px;
+      width: 100%;
+      font-size: 18px;
+      border: 2px solid #ccc;
+      border-radius: 50px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: .3s;
+    }
+    .search-bar:focus {
+      outline: none;
+      border-color: #007bff;
+      background: #f0f8ff;
+      box-shadow: 0 6px 12px rgba(0,123,255,0.2);
+    }
+  </style>
 </head>
 <body>
-<div class="container">
-<div class="title">Coolio <span>Web</span></div>
-<div class="search-bar-wrapper">
-<form id="newtab-form" style="width:100%">
-<input id="search" type="text" class="search-bar" placeholder="Search or enter a URL" autocomplete="off">
-</form>
-</div>
-</div>
-<script>
-  window.addEventListener('message', (e) => {
-    if (e.origin !== window.location.origin) return;
+  <div class="container">
+    <div class="title">Coolio <span>Web</span></div>
+    <div class="search-bar-wrapper">
+      <form id="newtab-form" style="width:100%">
+        <input
+          id="search"
+          type="text"
+          class="search-bar"
+          placeholder="Search or enter a URL"
+          autocomplete="off"
+        >
+      </form>
+    </div>
+  </div>
 
-    if (e.data.startsWith('url:')) {
-      const newUrl = e.data.substring(4); // Extract URL
-      urlInput.value = newUrl;
-      tabs[activeIndex].url = newUrl; // Update the active tab's URL
-      iframeElements[activeIndex].src = 'static/iframe.html#' + newUrl; // Set the iframe to the new URL
-      updateTabInfo(); // Update tab info
-    }
-  });
-</script>
+  <script>
+    const form = document.getElementById('newtab-form');
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const input = document.getElementById('search').value.trim();
+      if (!input) return;
+      // send raw input back to parent
+      window.parent.postMessage('url:' + input, window.location.origin);
+    });
 
-
-
-
-
-
+    // focus input on load
+    document.getElementById('search').focus();
+  </script>
 </body>
 </html>
