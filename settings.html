@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4; }
+    h1 { text-align: center; }
+    .setting { margin: 15px 0; }
+    label { display: block; font-weight: bold; }
+    select, input { width: 100%; padding: 8px; font-size: 16px; }
+    button { padding: 10px 20px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+    button:hover { background-color: #0056b3; }
+  </style>
+</head>
+<body>
+
+  <h1>Settings</h1>
+
+  <div class="setting">
+    <label for="theme">Theme</label>
+    <select id="theme">
+      <option value="light">Light</option>
+      <option value="dark">Dark</option>
+    </select>
+  </div>
+
+  <div class="setting">
+    <label for="homepage">Homepage</label>
+    <input type="text" id="homepage" value="coolio://new">
+  </div>
+
+  <div class="setting">
+    <button id="saveBtn">Save</button>
+  </div>
+
+  <script>
+    // Save settings to localStorage when the button is clicked
+    document.getElementById('saveBtn').addEventListener('click', function() {
+      const theme = document.getElementById('theme').value;
+      const homepage = document.getElementById('homepage').value;
+      localStorage.setItem('theme', theme);
+      localStorage.setItem('homepage', homepage);
+      alert('Settings saved!');
+    });
+
+    // Load settings from localStorage
+    document.getElementById('theme').value = localStorage.getItem('theme') || 'light';
+    document.getElementById('homepage').value = localStorage.getItem('homepage') || 'coolio://new';
+  </script>
+  
+  
+
+</body>
+</html>

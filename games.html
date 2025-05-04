@@ -1,93 +1,191 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta charset="UTF-8" />
   <title>Games</title>
-  <link rel="stylesheet" href="css/games.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #121212;
+      color: #e0e0e0;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .search-bar {
+      max-width: 600px;
+      margin: 0 auto 30px auto;
+    }
+
+    .search-bar input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #2a2a2a;
+      border-radius: 25px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      background-color: #1a1a1a;
+      color: #f0f0f0;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .search-bar input:focus {
+      outline: none;
+      border-color: #6ed749;
+      box-shadow: 0 0 0 3px rgba(100, 100, 255, 0.1);
+    }
+
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 24px;
+      margin: auto;
+      padding: 0 20px;
+    }
+
+    .game-card {
+      background: #1e1e1e;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .game-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      background-color: #333;
+    }
+
+    .game-card .image-wrapper {
+      position: relative;
+      width: 100%;
+      padding-top: 100%;
+      overflow: hidden;
+    }
+
+    .game-card img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .game-card h3 {
+      font-size: 1rem;
+      margin: 10px;
+      text-align: center;
+      font-weight: bold;
+      color: #ddd;
+      transition: color 0.3s ease;
+    }
+
+    .game-card:hover h3 {
+      color: #6ed749;
+    }
+
+    .loader {
+      text-align: center;
+      margin: 30px 0;
+      font-size: 1rem;
+      color: #777;
+    }
+  </style>
 </head>
 <body>
 
-  <div class="search-container">
-    <input type="text" id="searchBar" class="search-bar" placeholder="Search games...">
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search games...">
   </div>
 
-  <div class="cards-container" id="gamesContainer">
-  </div>
-
-  <!-- Loading Screen -->
-  <div id="loadingScreen" class="loading-screen">
-    <div class="loader"></div>
-  </div>
+  <div class="game-grid" id="gamesContainer"></div>
+  <div class="loader" id="loader">Loading more games...</div>
 
   <script src="games-data.js"></script>
   <script>
-    const gamesContainer = document.getElementById('gamesContainer');
-    const searchBar = document.getElementById('searchBar');
-    const loadingScreen = document.getElementById('loadingScreen');
-    const body = document.body;
+    const container = document.getElementById('gamesContainer');
+    const loader = document.getElementById('loader');
+    const searchInput = document.getElementById('searchInput');
 
-    function renderGames(filteredGames) {
-      gamesContainer.innerHTML = '';
-      filteredGames.forEach(game => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        
-        card.innerHTML = `
-          <img src="${game.image}" alt="${game.name}">
-          <div class="card-content">
-            <h3>${game.name}</h3>
-            <a href="javascript:void(0);" class="play-button" data-url="${game.url}">
-              <span class="play-icon"></span> Play
-            </a>
-          </div>
-        `;
-        
-        gamesContainer.appendChild(card);
-      });
+    let filteredGames = [...games];
+    let loadedCount = 0;
+    const batchSize = 30;
+
+    function createGameCard(game, index) {
+      const card = document.createElement('a');
+      card.href = game.url;
+      card.className = 'game-card';
+
+      const imageWrapper = document.createElement('div');
+      imageWrapper.className = 'image-wrapper';
+
+      const img = document.createElement('img');
+      img.src = game.image;
+      img.alt = game.name;
+      imageWrapper.appendChild(img);
+
+      const title = document.createElement('h3');
+      title.textContent = game.name;
+
+      card.appendChild(imageWrapper);
+      card.appendChild(title);
+
+      return card;
     }
 
-    searchBar.addEventListener('input', function() {
-      const query = searchBar.value.toLowerCase();
-      const filteredGames = games.filter(game => game.name.toLowerCase().includes(query));
-      renderGames(filteredGames);
-    });
+    function loadGames() {
+      const slice = filteredGames.slice(loadedCount, loadedCount + batchSize);
+      slice.forEach((game, i) => {
+        const card = createGameCard(game, i);
+        container.appendChild(card);
+      });
 
-    renderGames(games);
+      loadedCount += slice.length;
 
-    // Handle card clicks
-    document.getElementById('gamesContainer').addEventListener('click', function(event) {
-      if (event.target.closest('.play-button')) {
-        const gameUrl = event.target.closest('.play-button').getAttribute('data-url');
-
-        // Show loading screen
-        loadingScreen.classList.add('show');
-        body.classList.add('fade');
-
-        // Create the iframe dynamically
-        const iframe = document.createElement('iframe');
-        iframe.src = gameUrl;
-        iframe.style.opacity = "0"; // Initially hidden
-        iframe.style.transition = "opacity 2s ease"; // Smooth fade-in transition
-        document.body.appendChild(iframe);
-
-        // Wait for 2 seconds before starting the iframe loading animation
-        setTimeout(() => {
-          iframe.style.opacity = "1"; // Fade in iframe after 2 seconds
-        }, 2000);
-
-        // Remove the loading screen and fade effect after the iframe is loaded
-        iframe.onload = () => {
-          setTimeout(() => {
-            loadingScreen.classList.remove('show');
-            body.classList.remove('fade');
-          }, 3000); // Wait for a moment before removing the fade effect
-        };
+      if (loadedCount >= filteredGames.length) {
+        loader.style.display = 'none';
+        window.removeEventListener('scroll', handleScroll);
       }
-    });
-  </script>
+    }
 
+    function handleScroll() {
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 300) {
+        loadGames();
+      }
+    }
+
+    function filterGames() {
+      const query = searchInput.value.trim().toLowerCase();
+      container.innerHTML = '';
+      loadedCount = 0;
+
+      filteredGames = games.filter(g => 
+        g.name.toLowerCase().includes(query)
+      );
+
+      loader.style.display = filteredGames.length > 0 ? 'block' : 'none';
+      window.addEventListener('scroll', handleScroll);
+      loadGames();
+    }
+
+    searchInput.addEventListener('input', () => {
+      window.removeEventListener('scroll', handleScroll);
+      filterGames();
+    });
+
+    window.addEventListener('scroll', handleScroll);
+    loadGames();
+  </script>
 </body>
 </html>
