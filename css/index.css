@@ -118,6 +118,11 @@ body {
   color: #222;
 }
 
+.close .navb-icon {
+  width: 25px !important;
+  height: 25px !important;
+}
+
 .tab:hover .close,
 .tab.selected .close {
   display: block;
