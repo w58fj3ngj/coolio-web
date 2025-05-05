@@ -240,7 +240,6 @@ iframe::-webkit-scrollbar-thumb {
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.7;
 }
 
 @keyframes fadeIn {
