@@ -2,7 +2,7 @@ const games = [
   {
     "name": "1v1.lol",
     "image": "img/games/1v1lol.webp",
-    "url": "static/iframe.html#1v1.lol"
+    "url": "static/iframe.html#https://1v1.lol"
   },
   {
     "name": "2048",
