@@ -7,7 +7,7 @@ const games = [
   {
     "name": "2048",
     "image": "img/games/2048.webp",
-    "url": "games/2048/index.html"
+    "url": "static/iframe.html#https://w58fj3ngj.github.io/games/2048/index.html""
   },
   {
     "name": "3D Bowling",

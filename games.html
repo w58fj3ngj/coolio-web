@@ -1,20 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+<link href="https://fonts.googleapis.com/css2?family=Funnel+Sans:ital,wght@0,300..800;1,300..800&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Titan+One&display=swap" rel="stylesheet">
 <head>
   <meta charset="UTF-8" />
   <title>Games</title>
   <style>
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #121212;
-      color: #e0e0e0;
-      margin: 0;
+      background: #ffffff;
+      color: #1a1a1a;
       padding: 20px;
     }
+	
+	body::-webkit-scrollbar {
+  width: 12px;
+}
+
+body::-webkit-scrollbar-track {
+  background: #e0e0e0; /* light gray background */
+}
+
+body::-webkit-scrollbar-thumb {
+  background: #333; /* dark thumb */
+  border-radius: 6px;
+  border: 2px solid #e0e0e0; /* creates padding effect */
+}
+
+body::-webkit-scrollbar-thumb:hover {
+  background: #222; /* darker on hover */
+}
 
     .search-bar {
       max-width: 600px;
@@ -23,83 +45,140 @@
 
     .search-bar input {
       width: 100%;
-      padding: 10px 14px;
-      border: 1px solid #2a2a2a;
+      padding: 12px 18px;
+      border: 2px solid #007bff;
       border-radius: 25px;
       font-size: 1rem;
       transition: all 0.3s ease;
-      background-color: #1a1a1a;
-      color: #f0f0f0;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      background-color: #ffffff;
+      color: #1a1a1a;
+      box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
     }
 
     .search-bar input:focus {
       outline: none;
-      border-color: #6ed749;
-      box-shadow: 0 0 0 3px rgba(100, 100, 255, 0.1);
+      border-color: #0056b3;
+      box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.2);
     }
 
     .game-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
       gap: 24px;
       margin: auto;
       padding: 0 20px;
     }
 
     .game-card {
-      background: #1e1e1e;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
-      text-decoration: none;
-      color: inherit;
-      transition: all 0.3s ease;
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-    }
+  background: #f9f9f9;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow:
+    0 6px 12px rgba(0, 0, 0, 0.08);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.3s ease;
+  display: block;
+  position: relative;
+}
 
-    .game-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      background-color: #333;
-    }
-
-    .game-card .image-wrapper {
+    .image-wrapper {
       position: relative;
       width: 100%;
       padding-top: 100%;
       overflow: hidden;
     }
 
-    .game-card img {
+    .image-wrapper img {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .game-card:hover {
+      transform: translateY(-6px);
+    }
+
+    .game-card:hover img {
+      transform: scale(1.05);
+      filter: brightness(0.75);
     }
 
     .game-card h3 {
-      font-size: 1rem;
-      margin: 10px;
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      right: 0;
       text-align: center;
-      font-weight: bold;
-      color: #ddd;
-      transition: color 0.3s ease;
+      font-size: 1.2rem;
+      color: #ffffff;
+      margin: 0;
+      padding: 0;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      transform: translateY(100%);
+      transition: all 0.3s ease;
+      pointer-events: none;
+	  font-family: "Funnel Sans", sans-serif;
     }
 
     .game-card:hover h3 {
-      color: #6ed749;
+      transform: translateY(0);
+      opacity: 1;
     }
 
-    .loader {
-      text-align: center;
-      margin: 30px 0;
-      font-size: 1rem;
-      color: #777;
+    .play-icon-wrapper {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.7);
+      opacity: 0;
+      width: 56px;
+      height: 56px;
+      background-color: #007bff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .play-icon {
+      width: 28px;
+      height: 28px;
+      fill: #fff;
+      transition: all 0.2s ease;
+    }
+
+    .game-card:hover .play-icon-wrapper {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .play-icon-wrapper:hover {
+      background-color: #3998ff;
+      transform: translate(-50%, -50%) scale(1.1);
+	  width: 63px;
+      height: 63px;
+    }
+	
+	.play-icon-wrapper:hover .play-icon {
+	  width: 33px;
+      height: 33px;
+    }
+	
+	.play-icon-wrapper:active .play-icon {
+	  width: 27px;
+      height: 27px;
+    }
+
+    .play-icon-wrapper:active {
+      width: 55px;
+      height: 55px;
     }
   </style>
 </head>
@@ -110,19 +189,13 @@
   </div>
 
   <div class="game-grid" id="gamesContainer"></div>
-  <div class="loader" id="loader">Loading more games...</div>
 
   <script src="games-data.js"></script>
   <script>
     const container = document.getElementById('gamesContainer');
-    const loader = document.getElementById('loader');
     const searchInput = document.getElementById('searchInput');
 
-    let filteredGames = [...games];
-    let loadedCount = 0;
-    const batchSize = 30;
-
-    function createGameCard(game, index) {
+    function createGameCard(game) {
       const card = document.createElement('a');
       card.href = game.url;
       card.className = 'game-card';
@@ -138,54 +211,42 @@
       const title = document.createElement('h3');
       title.textContent = game.name;
 
+      const playWrapper = document.createElement('div');
+      playWrapper.className = 'play-icon-wrapper';
+
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("viewBox", "0 0 24 24");
+      svg.classList.add("play-icon");
+
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", "M8 5v14l11-7z");
+
+      svg.appendChild(path);
+      playWrapper.appendChild(svg);
+
       card.appendChild(imageWrapper);
       card.appendChild(title);
+      card.appendChild(playWrapper);
 
       return card;
     }
 
-    function loadGames() {
-      const slice = filteredGames.slice(loadedCount, loadedCount + batchSize);
-      slice.forEach((game, i) => {
-        const card = createGameCard(game, i);
+    function loadAllGames(gamesList) {
+      container.innerHTML = '';
+      gamesList.forEach(game => {
+        const card = createGameCard(game);
         container.appendChild(card);
       });
-
-      loadedCount += slice.length;
-
-      if (loadedCount >= filteredGames.length) {
-        loader.style.display = 'none';
-        window.removeEventListener('scroll', handleScroll);
-      }
-    }
-
-    function handleScroll() {
-      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 300) {
-        loadGames();
-      }
     }
 
     function filterGames() {
       const query = searchInput.value.trim().toLowerCase();
-      container.innerHTML = '';
-      loadedCount = 0;
-
-      filteredGames = games.filter(g => 
-        g.name.toLowerCase().includes(query)
-      );
-
-      loader.style.display = filteredGames.length > 0 ? 'block' : 'none';
-      window.addEventListener('scroll', handleScroll);
-      loadGames();
+      const filtered = games.filter(g => g.name.toLowerCase().includes(query));
+      loadAllGames(filtered);
     }
 
-    searchInput.addEventListener('input', () => {
-      window.removeEventListener('scroll', handleScroll);
-      filterGames();
-    });
-
-    window.addEventListener('scroll', handleScroll);
-    loadGames();
+    searchInput.addEventListener('input', filterGames);
+    loadAllGames(games);
   </script>
 </body>
 </html>
