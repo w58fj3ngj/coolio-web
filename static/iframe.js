@@ -2,9 +2,8 @@
 let destination = "";
 
 try {
-  destination = new URL(location.hash.slice(1)).toString();
+  destination = new URL(location.hash.slice(1), window.location.href).toString();
 } catch (err) {
-  alert(`Bad # string or bad URL. Got error:\n${err}`);
   throw err;
 }
 
