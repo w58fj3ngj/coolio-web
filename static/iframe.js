@@ -2,7 +2,7 @@
 let destination = "";
 
 try {
-  destination = new URL(location.hash.slice(1), window.location.href).toString();
+  destination = new URL(location.hash.slice(1)).toString();
 } catch (err) {
   throw err;
 }
