@@ -74,13 +74,12 @@ body {
 }
 
 .tab {
-  width: 14%;
+  width: 17%;
   max-width: 280px;
   padding: 1px 12px;
   justify-content: flex-start;
   gap: 6px;
   position: relative;
-  border: 1px solid transparent;
   background-color: #ffffff;
   transition: background-color 0.25s ease;
 }
@@ -98,7 +97,7 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 175px;
+  max-width: 70%;
 }
 
 .close {
@@ -151,15 +150,16 @@ body {
   position: absolute;
   top: 90px;
   right: 2px;
-  background-color: #fff;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 6px;
+  background: linear-gradient(to bottom right, #ffffff, #f9f9f9);
+  border: 1px solid #e1e1e1;
+  border-radius: 12px;
+  padding: 8px 6px;
   display: none;
   flex-direction: column;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   z-index: 100;
-  animation: fadeIn 0.2s ease;
+  animation: dropdownFadeIn 0.25s ease;
+  min-width: 180px;
 }
 
 .dropdown.show {
@@ -169,36 +169,36 @@ body {
 .dropdown button {
   background: transparent;
   border: none;
-  padding: 5px 4px;
-  font-size: 13px;
-  color: #444;
-  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #333;
+  border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 10px;
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.25s, color 0.25s;
 }
 
 .dropdown button:hover {
-  background: #f3faff;
-  color: #007acc;
+  background: #eef6ff;
+  color: #0078d4;
 }
 
 .dropdown-icon {
-  width: 20px;
-  height: 25px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  line-height: 1;
+  opacity: 0.85;
 }
 
 .divider {
   height: 1px;
-  background-color: #e4e4e4;
-  margin: 4px 6px;
+  background-color: #eaeaea;
+  margin: 8px 0;
 }
 
 .iframe-container {
@@ -242,13 +242,13 @@ iframe::-webkit-scrollbar-thumb {
   justify-content: center;
 }
 
-@keyframes fadeIn {
+@keyframes dropdownFadeIn {
   from {
     opacity: 0;
-    transform: translateY(-2px);
+    transform: translateY(-6px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }

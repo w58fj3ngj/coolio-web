@@ -6,31 +6,113 @@
   <title>New Tab</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0 }
-    body { font-family: 'Segoe UI',sans-serif; background: linear-gradient(to bottom right,#f9f9f9,#ebf6ff); color: #333; height: 100vh; display: flex; align-items: center; justify-content: center }
-    .container { text-align: center; padding: 40px; width: 90%; max-width: 600px; }
-    .title { font-size: 50px; font-weight: bold; margin-bottom: 30px }
-    .title span { color: #007bff }
-    .search-bar-wrapper { margin-top: 20px; display: flex; justify-content: center }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f0f4ff, #e8f0fe);
+      color: #333;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .container {
+      text-align: center;
+      padding: 40px;
+      width: 90%;
+      max-width: 600px;
+      animation: fadeIn 0.6s ease-out both;
+    }
+    .title {
+      font-size: 4rem;
+      font-weight: 800;
+      margin-bottom: 10px;
+      position: relative;
+      animation: slideIn 0.6s ease-out both;
+    }
+    .title span {
+      color: #007bff;
+    }
+    .subtitle {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 30px;
+      animation: fadeIn 0.8s 0.2s ease-out both;
+    }
+    .search-bar-wrapper {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      animation: slideIn 0.6s 0.4s ease-out both;
+    }
     .search-bar {
       padding: 15px 25px;
       width: 100%;
-      font-size: 18px;
+      font-size: 1rem;
       border: 2px solid #ccc;
       border-radius: 50px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
       transition: .3s;
     }
     .search-bar:focus {
       outline: none;
       border-color: #007bff;
       background: #f0f8ff;
-      box-shadow: 0 6px 12px rgba(0,123,255,0.2);
+      box-shadow: 0 6px 16px rgba(0,123,255,0.2);
+    }
+    .recent-list {
+      margin-top: 30px;
+      text-align: left;
+      max-width: 500px;
+      width: 100%;
+      animation: fadeIn 0.8s 0.6s ease-out both;
+    }
+    .recent-list h2 {
+      font-size: 1.1rem;
+      margin-bottom: 12px;
+      color: #444;
+    }
+    .recent-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: background .2s;
+      cursor: pointer;
+      animation: slideIn 0.5s ease-out both;
+    }
+    .recent-item + .recent-item { margin-top: 8px; }
+    .recent-item:hover {
+      background: rgba(0, 123, 255, 0.05);
+    }
+    .recent-item img {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+    }
+    .recent-item span {
+      font-size: 0.95rem;
+      color: #333;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0 }
+      to { opacity: 1 }
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px) }
+      to { opacity: 1; transform: translateY(0) }
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="title">Coolio <span>Web</span></div>
+    <div class="subtitle">Bypassed search browser intended for educational use</div>
     <div class="search-bar-wrapper">
       <form id="newtab-form" style="width:100%">
         <input
@@ -42,20 +124,60 @@
         >
       </form>
     </div>
+    <div class="recent-list" id="recent-list">
+      <h2>Recently Visited</h2>
+      <!-- items injected here -->
+    </div>
   </div>
 
   <script>
     const form = document.getElementById('newtab-form');
+    const input = document.getElementById('search');
+    const recentList = document.getElementById('recent-list');
+    const MAX_RECENTS = 5;
+
+    function loadRecents() {
+      const recents = JSON.parse(localStorage.getItem('recentSites') || '[]');
+      recentList.querySelectorAll('.recent-item').forEach(n => n.remove());
+      recents.forEach(({ url, title, icon }, i) => {
+        const item = document.createElement('div');
+        item.className = 'recent-item';
+        item.innerHTML = `
+          <img src="${icon}" alt="">
+          <span title="${title}">${title}</span>
+        `;
+        item.addEventListener('click', () => {
+          window.parent.postMessage('url:' + url, window.location.origin);
+        });
+        recentList.appendChild(item);
+      });
+    }
+
+    function saveRecent(raw) {
+      const formatted = raw.startsWith('http') ? raw : (raw.includes('.') ? 'https://' + raw : 'https://duckduckgo.com/?q=' + encodeURIComponent(raw));
+      const title = formatted;
+      const icon = 'https://www.google.com/s2/favicons?domain=' + (new URL(formatted)).hostname;
+      let recents = JSON.parse(localStorage.getItem('recentSites') || '[]');
+      recents = recents.filter(r => r.url !== formatted);
+      recents.unshift({ url: formatted, title, icon });
+      if (recents.length > MAX_RECENTS) recents.pop();
+      localStorage.setItem('recentSites', JSON.stringify(recents));
+    }
+
     form.addEventListener('submit', e => {
       e.preventDefault();
-      const input = document.getElementById('search').value.trim();
-      if (!input) return;
-      // send raw input back to parent
-      window.parent.postMessage('url:' + input, window.location.origin);
+      const raw = input.value.trim();
+      if (!raw) return;
+      saveRecent(raw);
+      loadRecents();
+      window.parent.postMessage('url:' + raw, window.location.origin);
+      input.value = '';
     });
 
-    // focus input on load
-    document.getElementById('search').focus();
+    window.addEventListener('load', () => {
+      input.focus();
+      loadRecents();
+    });
   </script>
 </body>
 </html>
