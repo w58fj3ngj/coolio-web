@@ -102,7 +102,18 @@ function createIframe(tab, idx) {
   iframe.dataset.index = idx;
   iframe.classList.toggle('active', idx === activeIndex);
   iframe.onload = () => {
-    const i = +iframe.dataset.index, t = tabs[i];
+    const i = +iframe.dataset.index;
+    const t = tabs[i];
+    const setFavicon = () => {
+      try {
+        const real = decodeURIComponent(t.url.split('#')[1] || t.url);
+        const domain = new URL(real).hostname;
+        tabs[i].icon = `https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${domain}&size=128`;
+        saveAndRender();
+      } catch {
+        tabs[i].icon = customIcons[t.url] || 'img/logo.png';
+      }
+    };
     const checkNestedTitle = () => {
       try {
         const outerDoc = iframe.contentDocument;
@@ -125,10 +136,7 @@ function createIframe(tab, idx) {
       t.icon = customIcons[t.url];
       saveAndRender();
     } else {
-      const real = decodeURIComponent(t.url.split('#')[1] || t.url),
-            domain = new URL(real).hostname;
-      tabs[i].icon = 'https://www.google.com/s2/favicons?domain=' + domain;
-      saveAndRender();
+      setFavicon();
       checkNestedTitle();
     }
   };
@@ -143,52 +151,29 @@ function renderTabs() {
     el.className = 'tab' + (i === activeIndex ? ' selected' : '');
     const fav = document.createElement('img');
     fav.className = 'icon';
-    fav.src = tab.icon || 'img/logo.png';
+    fav.src = tab.icon;
     fav.width = 16;
     fav.height = 16;
     const label = document.createElement('span');
-    label.textContent = tab.name || (() => {
-      try { return new URL(tab.url).hostname.replace('www.','') }
-      catch { return 'New Tab' }
-    })();
+    label.textContent = tab.name;
     const close = document.createElement('span');
     close.className = 'close';
-    close.innerHTML = `
-      <svg viewBox="0 0 24 17">
-        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    `;
+    close.innerHTML = `<svg viewBox="0 0 24 17"><path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
     const xSvg = close.querySelector('svg');
     xSvg.setAttribute('width', '15');
     xSvg.setAttribute('height', '15');
-    close.onclick = e => {
-      e.stopPropagation();
-      iframeElements[i].remove();
-      tabs.splice(i, 1);
-      iframeElements.splice(i, 1);
-      if (activeIndex >= tabs.length) activeIndex = tabs.length - 1;
-      saveAndRender();
-    };
+    close.onclick = e => { e.stopPropagation(); iframeElements[i].remove(); tabs.splice(i, 1); iframeElements.splice(i, 1); if (activeIndex >= tabs.length) activeIndex = tabs.length - 1; saveAndRender(); };
     el.append(fav, label, close);
     el.onclick = () => switchToTab(i);
     tabsContainer.appendChild(el);
   });
   const add = document.createElement('div');
   add.className = 'add-tab';
-  add.innerHTML = `
-    <svg viewBox="0 0 24 24">
-      <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  `;
+  add.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   const plusSvg = add.querySelector('svg');
   plusSvg.setAttribute('width', '16');
   plusSvg.setAttribute('height', '16');
-  add.onclick = () => {
-    tabs.push({ name: 'New Tab', url: 'coolio://new', icon: customIcons['coolio://new'] });
-    activeIndex = tabs.length - 1;
-    createIframe({ url: 'coolio://new' }, activeIndex);
-    saveAndRender();
-  };
+  add.onclick = () => { tabs.push({ name: 'New Tab', url: 'coolio://new', icon: customIcons['coolio://new'] }); activeIndex = tabs.length - 1; createIframe({ url: 'coolio://new' }, activeIndex); saveAndRender(); };
   tabsContainer.appendChild(add);
 }
 
@@ -196,13 +181,8 @@ function switchToTab(idx) {
   activeIndex = idx;
   localStorage.setItem('activeTab', activeIndex);
   iframeElements.forEach((ifr, i) => ifr.classList.toggle('active', i === idx));
-  if (iframeElements[idx]) {
-    const src = iframeElements[idx].src;
-    urlInput.value = src.includes('newtab.html') ? 'coolio://new'
-                   : src.includes('games.html') ? 'coolio://games'
-                   : src.includes('settings.html') ? 'coolio://settings'
-                   : decodeURIComponent(src.split('#')[1] || src);
-  }
+  const src = iframeElements[idx].src;
+  urlInput.value = src.includes('newtab.html') ? 'coolio://new' : src.includes('games.html') ? 'coolio://games' : src.includes('settings.html') ? 'coolio://settings' : decodeURIComponent(src.split('#')[1] || src);
   renderTabs();
 }
 
@@ -213,15 +193,7 @@ function saveAndRender() {
 }
 
 function updateTabIcons() {
-  tabs.forEach((tab, i) => {
-    try {
-      const real = decodeURIComponent(tab.url.split('#')[1] || tab.url),
-            domain = new URL(real).hostname;
-      tabs[i].icon = 'https://www.google.com/s2/favicons?domain=' + domain;
-    } catch {
-      tabs[i].icon = 'img/logo.png';
-    }
-  });
+  tabs.forEach((tab, i) => { try { const real = decodeURIComponent(tab.url.split('#')[1] || tab.url), domain = new URL(real).hostname; tabs[i].icon = `https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${domain}&size=128`; } catch { tabs[i].icon = customIcons[tab.url] || 'img/logo.png'; } });
   saveAndRender();
 }
 
@@ -237,81 +209,19 @@ urlInput.addEventListener('keydown', e => {
   }
 });
 
-$('backBtn').onclick    = () => { try { iframeElements[activeIndex].contentWindow.history.back() }    catch {} };
-$('forwardBtn').onclick = () => { try { iframeElements[activeIndex].contentWindow.history.forward() } catch {} };
-$('reloadBtn').onclick  = () => { try { iframeElements[activeIndex].contentWindow.location.reload() }   catch {} };
+['backBtn','forwardBtn','reloadBtn'].forEach(id => $(id).addEventListener('click', () => { try { const win = iframeElements[activeIndex].contentWindow; if (id==='backBtn') win.history.back(); if (id==='forwardBtn') win.history.forward(); if (id==='reloadBtn') win.location.reload(); } catch {} }));
 
-const moreButton  = $('moreButton'),
-      dropdownMenu = $('dropdownMenu');
-moreButton.onclick = () => dropdownMenu.classList.toggle('show');
-window.onclick     = e => {
-  if (!e.target.closest('.more-button') && !e.target.closest('.dropdown'))
-    dropdownMenu.classList.remove('show');
-};
+const moreButton = $('moreButton'), dropdownMenu = $('dropdownMenu'); moreButton.onclick = () => dropdownMenu.classList.toggle('show'); window.onclick = e => { if (!e.target.closest('.more-button') && !e.target.closest('.dropdown')) dropdownMenu.classList.remove('show'); };
 
-$('fullscreenBtn').onclick = () => {
-  const ifr = iframeElements[activeIndex];
-  if (ifr && !document.fullscreenElement) ifr.requestFullscreen();
-  else if (document.fullscreenElement) document.exitFullscreen();
-};
+['fullscreenBtn','installAppBtn','newTabBtn','gamesBtn','settingsBtn'].forEach(id => $(id).onclick = () => { if (id==='fullscreenBtn') { const ifr=iframeElements[activeIndex]; if (ifr&&!document.fullscreenElement) ifr.requestFullscreen(); else document.exitFullscreen(); } if (id==='installAppBtn' && deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then(()=>deferredPrompt=null); } if (['newTabBtn','gamesBtn','settingsBtn'].includes(id)) { const map={'newTabBtn':'new','gamesBtn':'games','settingsBtn':'settings'}; tabs.push({ name: 'New Tab', url: `coolio://${map[id]}`, icon: customIcons[`coolio://${map[id]}`] }); activeIndex=tabs.length-1; createIframe({url:`coolio://${map[id]}`},activeIndex); saveAndRender(); dropdownMenu.classList.remove('show'); } });
 
-$('installAppBtn').onclick = () => {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(() => { deferredPrompt = null });
-  }
-};
-
-$('newTabBtn').onclick = () => {
-  tabs.push({ name: 'New Tab', url: 'coolio://new', icon: customIcons['coolio://new'] });
-  activeIndex = tabs.length - 1;
-  createIframe({ url: 'coolio://new' }, activeIndex);
-  saveAndRender();
-  dropdownMenu.classList.remove('show');
-};
-
-$('gamesBtn').onclick = () => {
-  tabs.push({ name: 'Games', url: 'coolio://games', icon: customIcons['coolio://games'] });
-  activeIndex = tabs.length - 1;
-  createIframe({ url: 'coolio://games' }, activeIndex);
-  saveAndRender();
-  dropdownMenu.classList.remove('show');
-};
-
-$('settingsBtn').onclick = () => {
-  tabs.push({ name: 'Settings', url: 'coolio://settings', icon: customIcons['coolio://settings'] });
-  activeIndex = tabs.length - 1;
-  createIframe({ url: 'coolio://settings' }, activeIndex);
-  saveAndRender();
-  dropdownMenu.classList.remove('show');
-};
-
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-});
+window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); deferredPrompt=e });
 
 tabs.forEach(createIframe);
 saveAndRender();
 
-$('url-input').addEventListener('focus', function() {
-  this.select();
-});
-
-window.addEventListener('message', e => {
-  if (e.origin !== window.location.origin) return;
-  const msg = e.data;
-  if (typeof msg === 'string' && msg.startsWith('url:')) {
-    const raw = msg.slice(4);
-    const formatted = formatURL(raw);
-    const iframeUrl = 'static/iframe.html#' + formatted;
-    tabs[activeIndex].url = iframeUrl;
-    iframeElements[activeIndex].src = iframeUrl;
-    urlInput.value = raw;
-    updateTabIcons();
-    saveAndRender();
-  }
-});
+$('url-input').addEventListener('focus', function(){ this.select() });
+window.addEventListener('message', e => { if (e.origin!==window.location.origin) return; const msg=e.data; if (typeof msg==='string' && msg.startsWith('url:')) { const raw=msg.slice(4), formatted=formatURL(raw), iframeUrl='static/iframe.html#'+formatted; tabs[activeIndex].url=iframeUrl; iframeElements[activeIndex].src=iframeUrl; urlInput.value=raw; updateTabIcons(); saveAndRender(); } });
 </script>
 </body>
 </html>
