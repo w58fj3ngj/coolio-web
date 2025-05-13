@@ -9,14 +9,14 @@
   <link rel="icon" href="img/logo.png" type="image/png">
   <link rel="stylesheet" href="css/index.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
-<link href="https://fonts.googleapis.com/css2?family=Funnel+Sans:ital,wght@0,300..800;1,300..800&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Titan+One&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+  <link href="https://fonts.googleapis.com/css2?family=Funnel+Sans:ital,wght@0,300..800;1,300..800&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Titan+One&display=swap" rel="stylesheet">
 </head>
 <script src="static/uv/uv.bundle.js"></script>
-  <script src="static/uv/uv.config.js"></script>
-  <script src="static/register-sw.js"></script>
-  <script src="static/iframe.js"></script>
+<script src="static/uv/uv.config.js"></script>
+<script src="static/register-sw.js"></script>
+<script src="static/iframe.js"></script>
 <body>
   <div class="container">
     <div class="tabs" id="tabs"></div>
@@ -46,35 +46,29 @@
       </button>
     </div>
     <div class="dropdown" id="dropdownMenu">
-  <button id="newTabBtn">
-    <span class="material-symbols-outlined dropdown-icon">add</span>
-    New Tab
-  </button>
-
-  <div class="divider"></div>
-
-  <button id="fullscreenBtn" title="Fullscreen">
-    <span class="material-symbols-outlined dropdown-icon">fullscreen</span>
-    Fullscreen
-  </button>
-
-  <button id="gamesBtn" title="Games">
-    <span class="material-symbols-outlined dropdown-icon">sports_esports</span>
-    Games
-  </button>
-
-  <button id="installAppBtn">
-    <span class="material-symbols-outlined dropdown-icon">download</span>
-    Download App
-  </button>
-
-  <div class="divider"></div>
-
-  <button id="settingsBtn">
-    <span class="material-symbols-outlined dropdown-icon">settings</span>
-    Settings
-  </button>
-</div>
+      <button id="newTabBtn">
+        <span class="material-symbols-outlined dropdown-icon">add</span>
+        New Tab
+      </button>
+      <div class="divider"></div>
+      <button id="fullscreenBtn" title="Fullscreen">
+        <span class="material-symbols-outlined dropdown-icon">fullscreen</span>
+        Fullscreen
+      </button>
+      <button id="gamesBtn" title="Games">
+        <span class="material-symbols-outlined dropdown-icon">sports_esports</span>
+        Games
+      </button>
+      <button id="installAppBtn">
+        <span class="material-symbols-outlined dropdown-icon">download</span>
+        Download App
+      </button>
+      <div class="divider"></div>
+      <button id="settingsBtn">
+        <span class="material-symbols-outlined dropdown-icon">settings</span>
+        Settings
+      </button>
+    </div>
     <div class="iframe-container" id="iframeContainer"></div>
   </div>
 <script>
@@ -109,7 +103,23 @@ function createIframe(tab, idx) {
   iframe.classList.toggle('active', idx === activeIndex);
   iframe.onload = () => {
     const i = +iframe.dataset.index, t = tabs[i];
-    if (!t) return;
+    const checkNestedTitle = () => {
+      try {
+        const outerDoc = iframe.contentDocument;
+        if (!outerDoc) throw new Error();
+        const nestedIframe = outerDoc.querySelector('iframe');
+        if (!nestedIframe || !nestedIframe.contentDocument) return setTimeout(checkNestedTitle, 500);
+        const nestedTitle = nestedIframe.contentDocument.title;
+        if (nestedTitle && nestedTitle !== 'New Tab') {
+          tabs[i].name = nestedTitle;
+          saveAndRender();
+        } else {
+          setTimeout(checkNestedTitle, 500);
+        }
+      } catch {
+        setTimeout(checkNestedTitle, 500);
+      }
+    };
     if (t.url.startsWith('coolio://')) {
       t.name = { 'coolio://new':'New Tab','coolio://games':'Games','coolio://settings':'Settings' }[t.url];
       t.icon = customIcons[t.url];
@@ -119,13 +129,7 @@ function createIframe(tab, idx) {
             domain = new URL(real).hostname;
       tabs[i].icon = 'https://www.google.com/s2/favicons?domain=' + domain;
       saveAndRender();
-      (function checkTitle() {
-        try {
-          const title = iframe.contentDocument.title;
-          if (title) { tabs[i].name = title; saveAndRender() }
-          else setTimeout(checkTitle, 500);
-        } catch { setTimeout(checkTitle, 500) }
-      })();
+      checkNestedTitle();
     }
   };
   iframeContainer.appendChild(iframe);
@@ -137,34 +141,26 @@ function renderTabs() {
   tabs.forEach((tab, i) => {
     const el = document.createElement('div');
     el.className = 'tab' + (i === activeIndex ? ' selected' : '');
-
     const fav = document.createElement('img');
     fav.className = 'icon';
     fav.src = tab.icon || 'img/logo.png';
     fav.width = 16;
     fav.height = 16;
-
     const label = document.createElement('span');
     label.textContent = tab.name || (() => {
       try { return new URL(tab.url).hostname.replace('www.','') }
       catch { return 'New Tab' }
     })();
-
     const close = document.createElement('span');
     close.className = 'close';
     close.innerHTML = `
       <svg viewBox="0 0 24 17">
-        <path d="M18 6L6 18M6 6L18 18"
-              stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     `;
-
-    // force the SVG icon to 12×12
     const xSvg = close.querySelector('svg');
     xSvg.setAttribute('width', '15');
     xSvg.setAttribute('height', '15');
-
     close.onclick = e => {
       e.stopPropagation();
       iframeElements[i].remove();
@@ -173,27 +169,20 @@ function renderTabs() {
       if (activeIndex >= tabs.length) activeIndex = tabs.length - 1;
       saveAndRender();
     };
-
     el.append(fav, label, close);
     el.onclick = () => switchToTab(i);
     tabsContainer.appendChild(el);
   });
-
   const add = document.createElement('div');
   add.className = 'add-tab';
   add.innerHTML = `
     <svg viewBox="0 0 24 24">
-      <path d="M12 5V19M5 12H19"
-            stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   `;
-
-  // also size the plus-icon down if needed
   const plusSvg = add.querySelector('svg');
   plusSvg.setAttribute('width', '16');
   plusSvg.setAttribute('height', '16');
-
   add.onclick = () => {
     tabs.push({ name: 'New Tab', url: 'coolio://new', icon: customIcons['coolio://new'] });
     activeIndex = tabs.length - 1;
@@ -314,20 +303,15 @@ window.addEventListener('message', e => {
   const msg = e.data;
   if (typeof msg === 'string' && msg.startsWith('url:')) {
     const raw = msg.slice(4);
-    // reuse your Enter‐key logic:
     const formatted = formatURL(raw);
     const iframeUrl = 'static/iframe.html#' + formatted;
-    // update active tab
     tabs[activeIndex].url = iframeUrl;
     iframeElements[activeIndex].src = iframeUrl;
-    urlInput.value = raw;           // show exactly what user typed
-    updateTabIcons();               // refresh favicon
-    saveAndRender();                // redraw tabs + persist
+    urlInput.value = raw;
+    updateTabIcons();
+    saveAndRender();
   }
 });
 </script>
-
-
-
 </body>
 </html>
