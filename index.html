@@ -121,7 +121,7 @@ function createIframe(tab, idx) {
         const nestedIframe = outerDoc.querySelector('iframe');
         if (!nestedIframe || !nestedIframe.contentDocument) return setTimeout(checkNestedTitle, 500);
         const nestedTitle = nestedIframe.contentDocument.title;
-        if (nestedTitle && nestedTitle !== 'New Tab') {
+        if (nestedTitle && nestedTitle !== '') {
           tabs[i].name = nestedTitle;
           saveAndRender();
         } else {
