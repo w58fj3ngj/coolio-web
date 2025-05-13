@@ -108,7 +108,7 @@ function createIframe(tab, idx) {
       try {
         const real = decodeURIComponent(t.url.split('#')[1] || t.url);
         const domain = new URL(real).hostname;
-        tabs[i].icon = `https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${domain}&size=128`;
+        tabs[i].icon = `https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=$https://{domain}&size=128`;
         saveAndRender();
       } catch {
         tabs[i].icon = customIcons[t.url] || 'img/logo.png';
