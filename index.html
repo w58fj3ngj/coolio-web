@@ -114,27 +114,23 @@ function createIframe(tab, idx) {
         tabs[i].icon = customIcons[t.url] || 'img/logo.png';
       }
     };
-      const checkNestedTitle = () => {
-    try {
-      const outer = iframe.contentDocument;
-      const inner = outer && outer.querySelector('iframe');
-      const title = inner?.contentDocument?.title;
-      if (title && title !== 'New Tab') {
-        tabs[i].name = title;
-        saveAndRender();
-      } else {
+    const checkNestedTitle = () => {
+      try {
+        const outerDoc = iframe.contentDocument;
+        if (!outerDoc) throw new Error();
+        const nestedIframe = outerDoc.querySelector('iframe');
+        if (!nestedIframe || !nestedIframe.contentDocument) return setTimeout(checkNestedTitle, 500);
+        const nestedTitle = nestedIframe.contentDocument.title;
+        if (nestedTitle && nestedTitle !== '') {
+          tabs[i].name = nestedTitle;
+          saveAndRender();
+        } else {
+          setTimeout(checkNestedTitle, 500);
+        }
+      } catch {
         setTimeout(checkNestedTitle, 500);
       }
-    } catch {
-      setTimeout(checkNestedTitle, 500);
-    }
-  };
-
-  if (!t.url.startsWith('coolio://')) {
-    setFavicon();
-    checkNestedTitle();
-  }
-};
+    };
     if (t.url.startsWith('coolio://')) {
       t.name = { 'coolio://new':'New Tab','coolio://games':'Games','coolio://settings':'Settings' }[t.url];
       t.icon = customIcons[t.url];
